@@ -1,0 +1,11 @@
+XAI_API_TOKEN=xai-oLU6s3Vk3M2qbog45mXWZ5LHpsjh9h1H0rZJLoUNtyJx5jkJPjl9zKslGHymrYWCF4HR3lpNqoqGUftE
+
+
+jul.8.2024
+
+create venv
+Create CI/CD work following
+
+**No vibe coding!!**
+
+okay for my project i want to start with the backend. I will be having a LLM manage part of my backend this LLM will be called 'the broker' as he is going to be generating data on how each created agents will work together and calarifying each individual roles for the created agents,  after receving a prompt from user. The logic will be the following: 1. prompt from user (user wanting AI agents working for them) -> 2. prompt receved by the broker which will generate data on how each created agents will work together and calarifying each individual roles for the created agents. -> 3. a call will be made to x.ai api to create each agent 
