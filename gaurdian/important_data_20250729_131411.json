@@ -1,0 +1,30 @@
+[
+  {
+    "text": "Customer email: john.doe@example.com",
+    "importance_score": 0.8493317365646362,
+    "confidence": 0.8493317365646362,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "User authentication failed for account ID 45678",
+    "importance_score": 0.8486985564231873,
+    "confidence": 0.8486985564231873,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "Database backup completed successfully",
+    "importance_score": 0.7426247596740723,
+    "confidence": 0.7426247596740723,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "Order #12345 shipped to 123 Main St",
+    "importance_score": 0.7339772582054138,
+    "confidence": 0.7339772582054138,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  }
+]

@@ -1,0 +1,10 @@
+original_text,importance_score,confidence,source,created_at
+Customer inquiry about product pricing and availability,0.9437885284423828,0.9437885284423828,email_system,2025-07-29 17:15:05
+ERROR: Payment gateway timeout - transaction failed,0.9002887010574341,0.9002887010574341,system_logs,2025-07-29 17:15:05
+Order confirmation #ORD-2024-001 for customer ID 45678,0.8825540542602539,0.8825540542602539,email_system,2025-07-29 17:15:05
+Customer email: john.doe@example.com,0.8493317365646362,0.8493317365646362,example,2025-07-29 17:14:11
+User authentication failed for account ID 45678,0.8486985564231873,0.8486985564231873,example,2025-07-29 17:14:11
+Meeting reminder: Team standup tomorrow at 9 AM,0.8363808393478394,0.8363808393478394,email_system,2025-07-29 17:15:05
+INFO: Database backup completed successfully,0.8286100625991821,0.8286100625991821,system_logs,2025-07-29 17:15:05
+Database backup completed successfully,0.7426247596740723,0.7426247596740723,example,2025-07-29 17:14:11
+Order #12345 shipped to 123 Main St,0.7339772582054138,0.7339772582054138,example,2025-07-29 17:14:11

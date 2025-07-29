@@ -1,0 +1,65 @@
+[
+  {
+    "text": "Customer inquiry about product pricing and availability",
+    "importance_score": 0.9437885284423828,
+    "confidence": 0.9437885284423828,
+    "source": "email_system",
+    "timestamp": "2025-07-29 17:15:05"
+  },
+  {
+    "text": "ERROR: Payment gateway timeout - transaction failed",
+    "importance_score": 0.9002887010574341,
+    "confidence": 0.9002887010574341,
+    "source": "system_logs",
+    "timestamp": "2025-07-29 17:15:05"
+  },
+  {
+    "text": "Order confirmation #ORD-2024-001 for customer ID 45678",
+    "importance_score": 0.8825540542602539,
+    "confidence": 0.8825540542602539,
+    "source": "email_system",
+    "timestamp": "2025-07-29 17:15:05"
+  },
+  {
+    "text": "Customer email: john.doe@example.com",
+    "importance_score": 0.8493317365646362,
+    "confidence": 0.8493317365646362,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "User authentication failed for account ID 45678",
+    "importance_score": 0.8486985564231873,
+    "confidence": 0.8486985564231873,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "Meeting reminder: Team standup tomorrow at 9 AM",
+    "importance_score": 0.8363808393478394,
+    "confidence": 0.8363808393478394,
+    "source": "email_system",
+    "timestamp": "2025-07-29 17:15:05"
+  },
+  {
+    "text": "INFO: Database backup completed successfully",
+    "importance_score": 0.8286100625991821,
+    "confidence": 0.8286100625991821,
+    "source": "system_logs",
+    "timestamp": "2025-07-29 17:15:05"
+  },
+  {
+    "text": "Database backup completed successfully",
+    "importance_score": 0.7426247596740723,
+    "confidence": 0.7426247596740723,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  },
+  {
+    "text": "Order #12345 shipped to 123 Main St",
+    "importance_score": 0.7339772582054138,
+    "confidence": 0.7339772582054138,
+    "source": "example",
+    "timestamp": "2025-07-29 17:14:11"
+  }
+]
