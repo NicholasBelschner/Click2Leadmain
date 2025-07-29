@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Conversation System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Agent Conversation System</h1>
+            <p>Multi-agent AI conversation platform powered by XAI</p>
+        </header>
+
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <h2>Agent Configuration</h2>
+            <div class="config-grid">
+                <div class="config-group">
+                    <label for="employee1-role">Employee 1 Role:</label>
+                    <input type="text" id="employee1-role" value="Project Manager" placeholder="Enter role">
+                </div>
+                <div class="config-group">
+                    <label for="employee1-expertise">Employee 1 Expertise:</label>
+                    <input type="text" id="employee1-expertise" value="Project planning and coordination" placeholder="Enter expertise">
+                </div>
+                <div class="config-group">
+                    <label for="employee2-role">Employee 2 Role:</label>
+                    <input type="text" id="employee2-role" value="Senior Developer" placeholder="Enter role">
+                </div>
+                <div class="config-group">
+                    <label for="employee2-expertise">Employee 2 Expertise:</label>
+                    <input type="text" id="employee2-expertise" value="Technical implementation and system architecture" placeholder="Enter expertise">
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversation Setup -->
+        <div class="conversation-setup">
+            <h2>Start Conversation</h2>
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="conversation-topic">Conversation Topic:</label>
+                    <input type="text" id="conversation-topic" placeholder="Enter the main topic for discussion">
+                </div>
+                <div class="form-group">
+                    <label for="conversation-context">Context (Optional):</label>
+                    <textarea id="conversation-context" placeholder="Provide additional context for the conversation"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="max-exchanges">Maximum Exchanges:</label>
+                    <select id="max-exchanges">
+                        <option value="3">3 exchanges</option>
+                        <option value="4" selected>4 exchanges</option>
+                        <option value="5">5 exchanges</option>
+                        <option value="6">6 exchanges</option>
+                    </select>
+                </div>
+                <button id="start-conversation" class="btn btn-primary">Start Conversation</button>
+            </div>
+        </div>
+
+        <!-- Conversation Display -->
+        <div class="conversation-display" id="conversation-display" style="display: none;">
+            <h2>Conversation Progress</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Exchange 0 of 4</div>
+            
+            <div class="conversation-content" id="conversation-content">
+                <!-- Conversation messages will be displayed here -->
+            </div>
+
+            <div class="conversation-controls">
+                <button id="next-exchange" class="btn btn-secondary" style="display: none;">Next Exchange</button>
+                <button id="run-full-conversation" class="btn btn-primary">Run Full Conversation</button>
+                <button id="reset-conversation" class="btn btn-outline">Reset</button>
+            </div>
+        </div>
+
+        <!-- Quick Demo Buttons -->
+        <div class="demo-section">
+            <h2>Quick Demos</h2>
+            <div class="demo-buttons">
+                <button class="btn btn-demo" data-scenario="project">Project Timeline Discussion</button>
+                <button class="btn btn-demo" data-scenario="design">Feature Design Discussion</button>
+                <button class="btn btn-demo" data-scenario="marketing">Marketing Campaign Strategy</button>
+                <button class="btn btn-demo" data-scenario="hr">HR System Implementation</button>
+            </div>
+        </div>
+
+        <!-- Status and Logs -->
+        <div class="status-section">
+            <h2>System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">XAI API:</span>
+                    <span class="status-value" id="api-status">Checking...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Agents:</span>
+                    <span class="status-value" id="agents-status">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Conversation:</span>
+                    <span class="status-value" id="conversation-status">Idle</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p id="loading-text">Processing conversation...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

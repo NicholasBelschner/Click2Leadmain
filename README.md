@@ -14,20 +14,50 @@ Click2Lead/
 │   ├── test_model.py           # Testing script
 │   ├── demo.py                 # Comprehensive demonstration
 │   └── [model files & data]    # Trained models and databases
-├── agents/                     # Agent system components
+├── agents/                     # Multi-agent conversation system
+│   ├── README.md               # Agent system documentation
+│   ├── broker.py               # Broker agent coordinator
+│   ├── employee1.py            # First conversation participant
+│   ├── employee2.py            # Second conversation participant
+│   ├── agent_orchestrator.py   # Main orchestrator
+│   ├── demo_agents.py          # Demo scenarios
+│   └── SYSTEM_SUMMARY.md       # Implementation summary
+├── frontend/                   # Web interface
+│   ├── README.md               # Frontend documentation
+│   ├── index.html              # Main HTML page
+│   ├── styles.css              # CSS styling
+│   ├── script.js               # JavaScript functionality
+│   └── server.py               # Flask backend server
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
 ```
 
 ## 🚀 Quick Start
 
+### NLP Classifier System
 The NLP classifier system is located in the `gaurdian/` folder. See the [Guardian README](gaurdian/README.md) for detailed documentation.
 
-### Basic Usage
 ```bash
 cd gaurdian
 python train_model.py --epochs 50
 python demo.py
+```
+
+### Multi-Agent Conversation System
+The agent conversation system is located in the `agents/` folder. See the [Agents README](agents/README.md) for detailed documentation.
+
+```bash
+cd agents
+python demo_agents.py
+```
+
+### Web Frontend
+The web interface is located in the `frontend/` folder. See the [Frontend README](frontend/README.md) for detailed documentation.
+
+```bash
+cd frontend
+python server.py
+# Then open http://localhost:5000 in your browser
 ```
 
 ## Features
