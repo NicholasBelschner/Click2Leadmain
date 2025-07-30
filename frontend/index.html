@@ -6,118 +6,261 @@
     <title>Agent Conversation System</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>Agent Conversation System</h1>
-            <p>Multi-agent AI conversation platform powered by XAI</p>
-        </header>
+    <div class="app-container">
+        <!-- Left Side - Agents and Code Display -->
+        <div class="left-panel">
+            <!-- Top Left - Agents Section -->
+            <div class="agents-section">
+                <div class="section-header">
+                    <h2>🤖 Active Agents</h2>
+                    <div class="agent-status">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">Online</span>
+                    </div>
+                </div>
+                
+                <div class="agents-grid">
+                    <!-- Broker Agent -->
+                    <div class="agent-card broker-agent">
+                        <div class="agent-header">
+                            <div class="agent-icon">🎯</div>
+                            <div class="agent-info">
+                                <h3>Broker Agent</h3>
+                                <p>Conversation Coordinator</p>
+                            </div>
+                            <div class="agent-status-indicator active"></div>
+                        </div>
+                        <div class="agent-code-preview">
+                            <div class="code-header">
+                                <span>broker.py</span>
+                                <span class="code-status">Running</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">class BrokerAgent:
+    def __init__(self):
+        self.xai_api_token = os.getenv('XAI_API_TOKEN')
+        self.conversation_history = []
+        self.exchange_count = 0
+        self.max_exchanges = 6
 
-        <!-- Configuration Panel -->
-        <div class="config-panel">
-            <h2>Agent Configuration</h2>
-            <div class="config-grid">
-                <div class="config-group">
-                    <label for="employee1-role">Employee 1 Role:</label>
-                    <input type="text" id="employee1-role" value="Project Manager" placeholder="Enter role">
+    def coordinate_exchange(self, employee1_message, employee2_message):
+        # Real-time coordination logic
+        return self._analyze_exchange(...)</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Employee1 Agent -->
+                    <div class="agent-card employee1-agent">
+                        <div class="agent-header">
+                            <div class="agent-icon">👤</div>
+                            <div class="agent-info">
+                                <h3>Employee1</h3>
+                                <p id="employee1-role-display">Project Manager</p>
+                            </div>
+                            <div class="agent-status-indicator active"></div>
+                        </div>
+                        <div class="agent-code-preview">
+                            <div class="code-header">
+                                <span>employee1.py</span>
+                                <span class="code-status">Running</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">class Employee1Agent:
+    def __init__(self, role="Project Manager"):
+        self.role = role
+        self.expertise = "Project planning"
+        self.conversation_context = []
+
+    def generate_response(self, topic, employee2_message):
+        # Real-time response generation
+        return self._call_xai_api(...)</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Employee2 Agent -->
+                    <div class="agent-card employee2-agent">
+                        <div class="agent-header">
+                            <div class="agent-icon">👤</div>
+                            <div class="agent-info">
+                                <h3>Employee2</h3>
+                                <p id="employee2-role-display">Senior Developer</p>
+                            </div>
+                            <div class="agent-status-indicator active"></div>
+                        </div>
+                        <div class="agent-code-preview">
+                            <div class="code-header">
+                                <span>employee2.py</span>
+                                <span class="code-status">Running</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">class Employee2Agent:
+    def __init__(self, role="Senior Developer"):
+        self.role = role
+        self.expertise = "Technical implementation"
+        self.conversation_context = []
+
+    def generate_response(self, topic, employee1_message):
+        # Real-time response generation
+        return self._call_xai_api(...)</code></pre>
+                        </div>
+                    </div>
                 </div>
-                <div class="config-group">
-                    <label for="employee1-expertise">Employee 1 Expertise:</label>
-                    <input type="text" id="employee1-expertise" value="Project planning and coordination" placeholder="Enter expertise">
+            </div>
+
+            <!-- Bottom Left - Guardian Code Section -->
+            <div class="guardian-section">
+                <div class="section-header">
+                    <h2>🛡️ Guardian NLP System</h2>
+                    <div class="guardian-status">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">Processing</span>
+                    </div>
                 </div>
-                <div class="config-group">
-                    <label for="employee2-role">Employee 2 Role:</label>
-                    <input type="text" id="employee2-role" value="Senior Developer" placeholder="Enter role">
-                </div>
-                <div class="config-group">
-                    <label for="employee2-expertise">Employee 2 Expertise:</label>
-                    <input type="text" id="employee2-expertise" value="Technical implementation and system architecture" placeholder="Enter expertise">
+                
+                <div class="guardian-code-display">
+                    <div class="code-tabs">
+                        <button class="tab-button active" data-tab="nlp-classifier">nlp_classifier.py</button>
+                        <button class="tab-button" data-tab="database-integration">database_integration.py</button>
+                        <button class="tab-button" data-tab="train-model">train_model.py</button>
+                    </div>
+                    
+                    <div class="code-content">
+                        <div class="tab-content active" id="nlp-classifier">
+                            <div class="code-header">
+                                <span>nlp_classifier.py</span>
+                                <span class="code-status">Active</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">class NLPImportanceClassifier:
+    def __init__(self, max_words=10000, max_len=200):
+        self.max_words = max_words
+        self.max_len = max_len
+        self.model = None
+        self.tokenizer = None
+        self.class_names = ['NOT IMPORTANT', 'IMPORTANT']
+
+    def build_model(self):
+        # Neural network architecture
+        model = Sequential([
+            Embedding(self.max_words, 128, input_length=self.max_len),
+            Bidirectional(LSTM(64, return_sequences=True)),
+            Bidirectional(LSTM(32)),
+            Dense(64, activation='relu'),
+            Dropout(0.5),
+            Dense(1, activation='sigmoid')
+        ])
+        return model
+
+    def predict_single(self, text):
+        # Real-time prediction
+        processed_text = self.preprocess_text(text)
+        prediction = self.model.predict(processed_text)
+        return {
+            'is_important': prediction[0][0] > 0.5,
+            'confidence': float(prediction[0][0])
+        }</code></pre>
+                        </div>
+                        
+                        <div class="tab-content" id="database-integration">
+                            <div class="code-header">
+                                <span>database_integration.py</span>
+                                <span class="code-status">Connected</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">class DatabaseNLPProcessor:
+    def __init__(self, db_path='nlp_database.db'):
+        self.db_path = db_path
+        self.classifier = NLPImportanceClassifier()
+        self.init_database()
+
+    def process_text_batch(self, texts, source='unknown'):
+        results = []
+        for text in texts:
+            prediction = self.classifier.predict_single(text)
+            self.save_to_database(text, prediction, source)
+            results.append(prediction)
+        return results
+
+    def get_important_texts(self, limit=100, min_confidence=0.5):
+        # Database query for important texts
+        query = """
+        SELECT * FROM processed_texts 
+        WHERE is_important = 1 AND confidence >= ?
+        ORDER BY confidence DESC LIMIT ?
+        """
+        return self.execute_query(query, (min_confidence, limit))</code></pre>
+                        </div>
+                        
+                        <div class="tab-content" id="train-model">
+                            <div class="code-header">
+                                <span>train_model.py</span>
+                                <span class="code-status">Ready</span>
+                            </div>
+                            <pre class="code-snippet"><code class="language-python">def train_model_with_data(data_path, epochs=50):
+    # Load and preprocess training data
+    texts, labels = load_training_data(data_path)
+    
+    # Initialize classifier
+    classifier = NLPImportanceClassifier()
+    classifier.build_model()
+    
+    # Train the model
+    history = classifier.train(texts, labels, epochs=epochs)
+    
+    # Save trained model
+    classifier.save_model('nlp_classifier_model.h5')
+    classifier.save_tokenizer('nlp_tokenizer.json')
+    
+    return history
+
+# Real-time training monitoring
+print(f"Training completed with {epochs} epochs")
+print(f"Final accuracy: {history.history['accuracy'][-1]:.3f}")</code></pre>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Conversation Setup -->
-        <div class="conversation-setup">
-            <h2>Start Conversation</h2>
-            <div class="setup-form">
-                <div class="form-group">
-                    <label for="conversation-topic">Conversation Topic:</label>
-                    <input type="text" id="conversation-topic" placeholder="Enter the main topic for discussion">
-                </div>
-                <div class="form-group">
-                    <label for="conversation-context">Context (Optional):</label>
-                    <textarea id="conversation-context" placeholder="Provide additional context for the conversation"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="max-exchanges">Maximum Exchanges:</label>
-                    <select id="max-exchanges">
-                        <option value="3">3 exchanges</option>
-                        <option value="4" selected>4 exchanges</option>
-                        <option value="5">5 exchanges</option>
-                        <option value="6">6 exchanges</option>
-                    </select>
-                </div>
-                <button id="start-conversation" class="btn btn-primary">Start Conversation</button>
-            </div>
-        </div>
-
-        <!-- Conversation Display -->
-        <div class="conversation-display" id="conversation-display" style="display: none;">
-            <h2>Conversation Progress</h2>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-            <div class="progress-text" id="progress-text">Exchange 0 of 4</div>
-            
-            <div class="conversation-content" id="conversation-content">
-                <!-- Conversation messages will be displayed here -->
-            </div>
-
-            <div class="conversation-controls">
-                <button id="next-exchange" class="btn btn-secondary" style="display: none;">Next Exchange</button>
-                <button id="run-full-conversation" class="btn btn-primary">Run Full Conversation</button>
-                <button id="reset-conversation" class="btn btn-outline">Reset</button>
-            </div>
-        </div>
-
-        <!-- Quick Demo Buttons -->
-        <div class="demo-section">
-            <h2>Quick Demos</h2>
-            <div class="demo-buttons">
-                <button class="btn btn-demo" data-scenario="project">Project Timeline Discussion</button>
-                <button class="btn btn-demo" data-scenario="design">Feature Design Discussion</button>
-                <button class="btn btn-demo" data-scenario="marketing">Marketing Campaign Strategy</button>
-                <button class="btn btn-demo" data-scenario="hr">HR System Implementation</button>
-            </div>
-        </div>
-
-        <!-- Status and Logs -->
-        <div class="status-section">
-            <h2>System Status</h2>
-            <div class="status-grid">
-                <div class="status-item">
-                    <span class="status-label">XAI API:</span>
-                    <span class="status-value" id="api-status">Checking...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Agents:</span>
-                    <span class="status-value" id="agents-status">Ready</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Conversation:</span>
-                    <span class="status-value" id="conversation-status">Idle</span>
+        <!-- Right Side - Minimal Prompt Interface -->
+        <div class="right-panel">
+            <!-- Prompt Interface -->
+            <div class="prompt-interface">
+                <div class="prompt-container">
+                    <div class="prompt-header">
+                        <h1>Agent Conversation System</h1>
+                        <p>Ask me anything about your agents and conversations</p>
+                    </div>
+                    
+                    <div class="conversation-area" id="conversation-area">
+                        <!-- Conversation messages will appear here -->
+                    </div>
+                    
+                    <div class="prompt-input-container">
+                        <div class="prompt-input-wrapper">
+                            <textarea 
+                                id="prompt-input" 
+                                placeholder="Type your message here..."
+                                rows="1"
+                                class="prompt-textarea"
+                            ></textarea>
+                            <button id="send-prompt" class="send-button">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Loading Overlay -->
-        <div class="loading-overlay" id="loading-overlay" style="display: none;">
-            <div class="loading-content">
-                <div class="spinner"></div>
-                <p id="loading-text">Processing conversation...</p>
-            </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Processing conversation...</p>
         </div>
     </div>
 
