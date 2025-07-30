@@ -10,27 +10,30 @@ import json
 from datetime import datetime
 
 # Add the parent directory to the path to import agent modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 app = Flask(__name__)
 
-# Import agent modules
+# Import dynamic agent modules
 try:
-    from agents.agent_orchestrator import AgentOrchestrator
+    from agents.dynamic_orchestrator import DynamicAgentOrchestrator
     AGENTS_AVAILABLE = True
+    print("✅ Successfully imported DynamicAgentOrchestrator")
 except ImportError as e:
-    print(f"Warning: Agent modules not available: {e}")
+    print(f"Warning: Dynamic agent modules not available: {e}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Python path: {sys.path}")
     AGENTS_AVAILABLE = False
 
-# Global orchestrator instance
 orchestrator = None
 
 def initialize_orchestrator():
-    """Initialize the agent orchestrator"""
     global orchestrator
-    if AGENTS_AVAILABLE and orchestrator is None:
+    if orchestrator is None and AGENTS_AVAILABLE:
         try:
-            orchestrator = AgentOrchestrator()
+            orchestrator = DynamicAgentOrchestrator()
             return True
         except Exception as e:
             print(f"Error initializing orchestrator: {e}")
@@ -39,212 +42,208 @@ def initialize_orchestrator():
 
 @app.route('/')
 def index():
-    """Serve the main page"""
     return send_from_directory('.', 'index.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static files"""
     return send_from_directory('.', filename)
 
 @app.route('/api/status')
 def api_status():
-    """Check system status"""
-    try:
-        if initialize_orchestrator():
-            return jsonify({
-                'status': 'connected',
-                'agents': 'ready',
-                'timestamp': datetime.now().isoformat()
-            })
-        else:
-            return jsonify({
-                'status': 'demo_mode',
-                'agents': 'not_available',
-                'timestamp': datetime.now().isoformat()
-            })
-    except Exception as e:
+    """Check if the dynamic agent system is available"""
+    if initialize_orchestrator():
         return jsonify({
-            'status': 'error',
-            'error': str(e),
-            'timestamp': datetime.now().isoformat()
-        }), 500
+            'status': 'available',
+            'message': 'Dynamic Agent System is ready',
+            'features': [
+                'Dynamic agent creation',
+                'Multi-agent conversations',
+                'AI-powered suggestions',
+                'Flexible conversation management'
+            ]
+        })
+    else:
+        return jsonify({
+            'status': 'unavailable',
+            'message': 'Dynamic Agent System not available',
+            'features': []
+        })
 
 @app.route('/api/conversation/start', methods=['POST'])
 def start_conversation():
-    """Start a new conversation"""
+    """Start a new conversation with dynamic agents"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
     try:
         data = request.get_json()
-        
-        if not initialize_orchestrator():
-            return jsonify({
-                'error': 'Agent system not available'
-            }), 503
-        
-        # Extract parameters
         topic = data.get('topic', '')
         context = data.get('context', '')
-        employee1_role = data.get('employee1_role', 'Project Manager')
-        employee1_expertise = data.get('employee1_expertise', 'Project planning and coordination')
-        employee2_role = data.get('employee2_role', 'Senior Developer')
-        employee2_expertise = data.get('employee2_expertise', 'Technical implementation')
-        max_exchanges = data.get('max_exchanges', 4)
+        agent_specifications = data.get('agent_specifications', None)
         
         if not topic:
             return jsonify({'error': 'Topic is required'}), 400
         
-        # Start conversation
-        result = orchestrator.start_conversation(topic, context)
-        
-        return jsonify({
-            'success': True,
-            'conversation_id': result.get('conversation_id'),
-            'initial_perspectives': {
-                'employee1': result.get('employee1_perspective'),
-                'employee2': result.get('employee2_perspective'),
-                'broker_analysis': result.get('broker_analysis')
-            },
-            'max_exchanges': max_exchanges
-        })
+        result = orchestrator.start_conversation(topic, context, agent_specifications)
+        return jsonify(result)
         
     except Exception as e:
-        return jsonify({
-            'error': f'Error starting conversation: {str(e)}'
-        }), 500
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agents/create', methods=['POST'])
+def create_agents():
+    """Create agents from user specification"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
+    try:
+        data = request.get_json()
+        user_specification = data.get('specification', '')
+        topic = data.get('topic', '')
+        context = data.get('context', '')
+        
+        if not user_specification:
+            return jsonify({'error': 'Agent specification is required'}), 400
+        
+        result = orchestrator.create_agents_from_specification(user_specification, topic, context)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/conversation/exchange', methods=['POST'])
 def conduct_exchange():
-    """Conduct the next exchange in the conversation"""
+    """Conduct one exchange between agents"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
     try:
-        if not initialize_orchestrator():
-            return jsonify({
-                'error': 'Agent system not available'
-            }), 503
-        
-        # Conduct exchange
         result = orchestrator.conduct_exchange()
-        
-        return jsonify({
-            'success': True,
-            'exchange': result.get('exchange'),
-            'broker_analysis': result.get('broker_analysis'),
-            'progress': result.get('progress'),
-            'is_complete': result.get('is_complete', False)
-        })
+        return jsonify(result)
         
     except Exception as e:
-        return jsonify({
-            'error': f'Error conducting exchange: {str(e)}'
-        }), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/conversation/full', methods=['POST'])
 def run_full_conversation():
-    """Run the complete conversation"""
+    """Run a full conversation from start to finish"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
     try:
         data = request.get_json()
-        
-        if not initialize_orchestrator():
-            return jsonify({
-                'error': 'Agent system not available'
-            }), 503
-        
-        # Extract parameters
         topic = data.get('topic', '')
         context = data.get('context', '')
-        max_exchanges = data.get('max_exchanges', 4)
+        agent_specifications = data.get('agent_specifications', None)
+        max_exchanges = data.get('max_exchanges', 6)
         
         if not topic:
             return jsonify({'error': 'Topic is required'}), 400
         
-        # Run full conversation
-        result = orchestrator.conduct_full_conversation(topic, context, max_exchanges)
-        
-        return jsonify({
-            'success': True,
-            'conversation': result.get('conversation'),
-            'summary': result.get('summary'),
-            'exchanges': result.get('exchanges', []),
-            'final_status': result.get('final_status')
-        })
+        result = orchestrator.conduct_full_conversation(topic, context, agent_specifications, max_exchanges)
+        return jsonify(result)
         
     except Exception as e:
-        return jsonify({
-            'error': f'Error running full conversation: {str(e)}'
-        }), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/conversation/reset', methods=['POST'])
 def reset_conversation():
     """Reset the current conversation"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
     try:
-        if not initialize_orchestrator():
-            return jsonify({
-                'error': 'Agent system not available'
-            }), 503
-        
         orchestrator.reset_conversation()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Conversation reset successfully'
-        })
+        return jsonify({'status': 'reset', 'message': 'Conversation reset successfully'})
         
     except Exception as e:
-        return jsonify({
-            'error': f'Error resetting conversation: {str(e)}'
-        }), 500
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agents/list')
+def list_agents():
+    """Get all created agents"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
+    try:
+        agents = orchestrator.get_all_agents()
+        return jsonify({'agents': agents, 'count': len(agents)})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agents/suggestions', methods=['POST'])
+def get_agent_suggestions():
+    """Get agent role suggestions for a topic"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
+    try:
+        data = request.get_json()
+        topic = data.get('topic', '')
+        context = data.get('context', '')
+        
+        if not topic:
+            return jsonify({'error': 'Topic is required'}), 400
+        
+        suggestions = orchestrator.get_agent_suggestions(topic, context)
+        return jsonify({'suggestions': suggestions})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/conversation/status')
+def get_conversation_status():
+    """Get current conversation status"""
+    if not initialize_orchestrator():
+        return jsonify({'error': 'Agent system not available'}), 500
+    
+    try:
+        status = orchestrator.get_conversation_status()
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/demo/<scenario>')
 def get_demo_scenario(scenario):
-    """Get demo scenario configuration"""
-    scenarios = {
+    """Get demo scenarios for testing"""
+    demos = {
         'project': {
-            'topic': 'Project Timeline Adjustment for Authentication Module',
+            'topic': 'Project Timeline Adjustment',
             'context': 'Client needs delivery by Friday, team estimates 2 more weeks',
-            'employee1_role': 'Project Manager',
-            'employee1_expertise': 'Project planning and coordination',
-            'employee2_role': 'Senior Developer',
-            'employee2_expertise': 'Technical implementation and system architecture'
+            'suggestion': 'Create 3 agents: Project Manager, Senior Developer, and Client Representative'
         },
         'design': {
             'topic': 'Redesigning User Onboarding Flow',
             'context': '40% drop-off rate, need to improve retention',
-            'employee1_role': 'Product Manager',
-            'employee1_expertise': 'Product strategy and user experience',
-            'employee2_role': 'UX Designer',
-            'employee2_expertise': 'User interface design and user research'
+            'suggestion': 'Create 4 agents: Product Manager, UX Designer, Data Analyst, and Marketing Manager'
         },
         'marketing': {
-            'topic': 'Q4 Marketing Campaign Budget Allocation',
+            'topic': 'Q4 Marketing Campaign Strategy',
             'context': '$100K budget across different channels',
-            'employee1_role': 'Marketing Manager',
-            'employee1_expertise': 'Marketing strategy and campaign management',
-            'employee2_role': 'Data Analyst',
-            'employee2_expertise': 'Data analysis and performance optimization'
+            'suggestion': 'Create 3 agents: Marketing Manager, Data Analyst, and Creative Director'
         },
         'hr': {
-            'topic': 'Employee Performance Management System Implementation',
+            'topic': 'Employee Performance Management System',
             'context': 'Replace paper-based system with digital solution',
-            'employee1_role': 'HR Manager',
-            'employee1_expertise': 'Human resources and employee relations',
-            'employee2_role': 'IT Manager',
-            'employee2_expertise': 'Information technology and system implementation'
+            'suggestion': 'Create 3 agents: HR Manager, IT Manager, and Employee Representative'
         }
     }
     
-    if scenario in scenarios:
-        return jsonify(scenarios[scenario])
+    if scenario in demos:
+        return jsonify(demos[scenario])
     else:
-        return jsonify({'error': 'Scenario not found'}), 404
+        return jsonify({'error': 'Demo scenario not found'}), 404
 
 if __name__ == '__main__':
-    print("Starting Agent Conversation System Frontend Server...")
+    print("Starting Dynamic Agent Conversation System Frontend Server...")
     print("Server will be available at: http://localhost:5001")
     print("Press Ctrl+C to stop the server")
     
-    # Check if agents are available
-    if AGENTS_AVAILABLE:
-        print("✅ Agent system is available")
+    if initialize_orchestrator():
+        print("✅ Dynamic Agent System is available")
     else:
-        print("⚠️  Agent system not available - running in demo mode")
+        print("⚠️  Dynamic Agent System not available - running in demo mode")
     
     app.run(debug=True, host='0.0.0.0', port=5001) 

@@ -1,0 +1,141 @@
+{
+  "conversation_log": [
+    {
+      "timestamp": "2025-07-30T15:03:56.641716",
+      "exchange_number": 1,
+      "agent_responses": [
+        {
+          "agent_id": "agent_0",
+          "agent_role": "Marketing Manager",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:54.674930"
+        },
+        {
+          "agent_id": "agent_1",
+          "agent_role": "Data Analyst",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:55.458154"
+        },
+        {
+          "agent_id": "agent_2",
+          "agent_role": "Creative Director",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:56.035727"
+        }
+      ],
+      "broker_analysis": "Unable to generate response via XAI API. Please check your API configuration."
+    },
+    {
+      "timestamp": "2025-07-30T15:03:58.568180",
+      "exchange_number": 2,
+      "agent_responses": [
+        {
+          "agent_id": "agent_0",
+          "agent_role": "Marketing Manager",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:57.072212"
+        },
+        {
+          "agent_id": "agent_1",
+          "agent_role": "Data Analyst",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:57.644057"
+        },
+        {
+          "agent_id": "agent_2",
+          "agent_role": "Creative Director",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:58.137241"
+        }
+      ],
+      "broker_analysis": "Unable to generate response via XAI API. Please check your API configuration."
+    },
+    {
+      "timestamp": "2025-07-30T15:04:00.416955",
+      "exchange_number": 3,
+      "agent_responses": [
+        {
+          "agent_id": "agent_0",
+          "agent_role": "Marketing Manager",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:59.034125"
+        },
+        {
+          "agent_id": "agent_1",
+          "agent_role": "Data Analyst",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:03:59.492773"
+        },
+        {
+          "agent_id": "agent_2",
+          "agent_role": "Creative Director",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:04:00.021573"
+        }
+      ],
+      "broker_analysis": "Unable to generate response via XAI API. Please check your API configuration."
+    },
+    {
+      "timestamp": "2025-07-30T15:04:02.317239",
+      "exchange_number": 4,
+      "agent_responses": [
+        {
+          "agent_id": "agent_0",
+          "agent_role": "Marketing Manager",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:04:00.810533"
+        },
+        {
+          "agent_id": "agent_1",
+          "agent_role": "Data Analyst",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:04:01.261150"
+        },
+        {
+          "agent_id": "agent_2",
+          "agent_role": "Creative Director",
+          "message": "Unable to generate response via XAI API. Please check your API configuration.",
+          "timestamp": "2025-07-30T15:04:01.833275"
+        }
+      ],
+      "broker_analysis": "Unable to generate response via XAI API. Please check your API configuration."
+    }
+  ],
+  "current_conversation": {
+    "conversation_id": "conv_1753902231",
+    "status": "started",
+    "agents_created": 3,
+    "broker_message": "Unable to generate response via XAI API. Please check your API configuration.",
+    "agents": [
+      {
+        "id": "agent_0",
+        "role": "Marketing Manager",
+        "expertise": "Campaign strategy and execution",
+        "personality": "Unable to generate response via XAI API. Please check your API configuration.",
+        "conversation_context": [],
+        "created_at": "2025-07-30T15:03:52.697023",
+        "status": "active"
+      },
+      {
+        "id": "agent_1",
+        "role": "Data Analyst",
+        "expertise": "Performance analysis and optimization",
+        "personality": "Unable to generate response via XAI API. Please check your API configuration.",
+        "conversation_context": [],
+        "created_at": "2025-07-30T15:03:53.182238",
+        "status": "active"
+      },
+      {
+        "id": "agent_2",
+        "role": "Creative Director",
+        "expertise": "Creative strategy and design",
+        "personality": "Unable to generate response via XAI API. Please check your API configuration.",
+        "conversation_context": [],
+        "created_at": "2025-07-30T15:03:53.757051",
+        "status": "active"
+      }
+    ]
+  },
+  "all_agents": [],
+  "exported_at": "2025-07-30T15:04:02.317271"
+}
