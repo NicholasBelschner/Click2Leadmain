@@ -14,134 +14,42 @@
     <div class="app-container">
         <!-- Left Side - Agents and Code Display -->
         <div class="left-panel">
-            <!-- Top Left - Agents Section -->
-            <div class="agents-section">
-                <div class="section-header">
-                    <h2>🤖 Active Agents</h2>
-                    <div class="agent-status">
-                        <span class="status-dot active"></span>
-                        <span class="status-text">Online</span>
-                    </div>
-                </div>
-                
-                <div class="agents-grid">
-                    <!-- Broker Agent -->
-                    <div class="agent-card broker-agent">
-                        <div class="agent-header">
-                            <div class="agent-icon">🎯</div>
-                            <div class="agent-info">
-                                <h3>Broker Agent</h3>
-                                <p>Conversation Coordinator</p>
-                            </div>
-                            <div class="agent-status-indicator active"></div>
-                        </div>
-                        <div class="agent-code-preview">
-                            <div class="code-header">
-                                <span>broker.py</span>
-                                <span class="code-status">Running</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">class BrokerAgent:
-    def __init__(self):
-        self.xai_api_token = os.getenv('XAI_API_TOKEN')
-        self.conversation_history = []
-        self.exchange_count = 0
-        self.max_exchanges = 6
-
-    def coordinate_exchange(self, employee1_message, employee2_message):
-        # Real-time coordination logic
-        return self._analyze_exchange(...)</code></pre>
-                        </div>
-                    </div>
-
-                    <!-- Employee1 Agent -->
-                    <div class="agent-card employee1-agent">
-                        <div class="agent-header">
-                            <div class="agent-icon">👤</div>
-                            <div class="agent-info">
-                                <h3>Employee1</h3>
-                                <p id="employee1-role-display">Project Manager</p>
-                            </div>
-                            <div class="agent-status-indicator active"></div>
-                        </div>
-                        <div class="agent-code-preview">
-                            <div class="code-header">
-                                <span>employee1.py</span>
-                                <span class="code-status">Running</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">class Employee1Agent:
-    def __init__(self, role="Project Manager"):
-        self.role = role
-        self.expertise = "Project planning"
-        self.conversation_context = []
-
-    def generate_response(self, topic, employee2_message):
-        # Real-time response generation
-        return self._call_xai_api(...)</code></pre>
-                        </div>
-                    </div>
-
-                    <!-- Employee2 Agent -->
-                    <div class="agent-card employee2-agent">
-                        <div class="agent-header">
-                            <div class="agent-icon">👤</div>
-                            <div class="agent-info">
-                                <h3>Employee2</h3>
-                                <p id="employee2-role-display">Senior Developer</p>
-                            </div>
-                            <div class="agent-status-indicator active"></div>
-                        </div>
-                        <div class="agent-code-preview">
-                            <div class="code-header">
-                                <span>employee2.py</span>
-                                <span class="code-status">Running</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">class Employee2Agent:
-    def __init__(self, role="Senior Developer"):
-        self.role = role
-        self.expertise = "Technical implementation"
-        self.conversation_context = []
-
-    def generate_response(self, topic, employee1_message):
-        # Real-time response generation
-        return self._call_xai_api(...)</code></pre>
-                        </div>
+            <!-- Dynamic Agents Section -->
+            <div class="section">
+                <h3>🤖 Dynamic Agents</h3>
+                <div id="dynamic-agents-container">
+                    <div class="no-agents-message">
+                        <p>No agents created yet. Start a conversation to create your team!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Left - Guardian Code Section -->
-            <div class="guardian-section">
-                <div class="section-header">
-                    <h2>🛡️ Guardian NLP System</h2>
-                    <div class="guardian-status">
-                        <span class="status-dot active"></span>
-                        <span class="status-text">Processing</span>
+            <!-- Guardian System Section -->
+            <div class="section">
+                <h3>🛡️ Guardian System</h3>
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-status-indicator"></div>
+                        <span class="agent-name">NLP Classifier</span>
                     </div>
-                </div>
-                
-                <div class="guardian-code-display">
-                    <div class="code-tabs">
-                        <button class="tab-button active" data-tab="nlp-classifier">nlp_classifier.py</button>
-                        <button class="tab-button" data-tab="database-integration">database_integration.py</button>
-                        <button class="tab-button" data-tab="train-model">train_model.py</button>
-                    </div>
-                    
-                    <div class="code-content">
+                    <div class="agent-code-preview">
+                        <div class="code-tabs">
+                            <button class="tab-button active" data-tab="nlp-classifier">nlp_classifier.py</button>
+                            <button class="tab-button" data-tab="database-integration">database_integration.py</button>
+                            <button class="tab-button" data-tab="train-model">train_model.py</button>
+                        </div>
                         <div class="tab-content active" id="nlp-classifier">
-                            <div class="code-header">
-                                <span>nlp_classifier.py</span>
-                                <span class="code-status">Active</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">class NLPImportanceClassifier:
+                            <div class="code-snippet">
+                                <pre><code class="language-python">class NLPImportanceClassifier:
     def __init__(self, max_words=10000, max_len=200):
         self.max_words = max_words
         self.max_len = max_len
-        self.model = None
         self.tokenizer = None
+        self.model = None
         self.class_names = ['NOT IMPORTANT', 'IMPORTANT']
-
+    
     def build_model(self):
-        # Neural network architecture
+        # Bidirectional LSTM model
         model = Sequential([
             Embedding(self.max_words, 128, input_length=self.max_len),
             Bidirectional(LSTM(64, return_sequences=True)),
@@ -150,72 +58,55 @@
             Dropout(0.5),
             Dense(1, activation='sigmoid')
         ])
-        return model
-
-    def predict_single(self, text):
-        # Real-time prediction
-        processed_text = self.preprocess_text(text)
-        prediction = self.model.predict(processed_text)
-        return {
-            'is_important': prediction[0][0] > 0.5,
-            'confidence': float(prediction[0][0])
-        }</code></pre>
+        return model</code></pre>
+                            </div>
+                            <div class="code-status">Active</div>
                         </div>
-                        
                         <div class="tab-content" id="database-integration">
-                            <div class="code-header">
-                                <span>database_integration.py</span>
-                                <span class="code-status">Connected</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">class DatabaseNLPProcessor:
-    def __init__(self, db_path='nlp_database.db'):
+                            <div class="code-snippet">
+                                <pre><code class="language-python">class DatabaseIntegration:
+    def __init__(self, db_path='nlp_data.db'):
         self.db_path = db_path
-        self.classifier = NLPImportanceClassifier()
         self.init_database()
-
-    def process_text_batch(self, texts, source='unknown'):
-        results = []
-        for text in texts:
-            prediction = self.classifier.predict_single(text)
-            self.save_to_database(text, prediction, source)
-            results.append(prediction)
-        return results
-
-    def get_important_texts(self, limit=100, min_confidence=0.5):
-        # Database query for important texts
-        query = """
-        SELECT * FROM processed_texts 
-        WHERE is_important = 1 AND confidence >= ?
-        ORDER BY confidence DESC LIMIT ?
-        """
-        return self.execute_query(query, (min_confidence, limit))</code></pre>
-                        </div>
-                        
-                        <div class="tab-content" id="train-model">
-                            <div class="code-header">
-                                <span>train_model.py</span>
-                                <span class="code-status">Ready</span>
-                            </div>
-                            <pre class="code-snippet"><code class="language-python">def train_model_with_data(data_path, epochs=50):
-    # Load and preprocess training data
-    texts, labels = load_training_data(data_path)
     
-    # Initialize classifier
+    def init_database(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS text_data (
+                id INTEGER PRIMARY KEY,
+                text TEXT NOT NULL,
+                importance INTEGER NOT NULL,
+                confidence REAL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()</code></pre>
+                            </div>
+                            <div class="code-status">Connected</div>
+                        </div>
+                        <div class="tab-content" id="train-model">
+                            <div class="code-snippet">
+                                <pre><code class="language-python">def train_model():
     classifier = NLPImportanceClassifier()
-    classifier.build_model()
+    
+    # Load and preprocess data
+    X_train, X_test, y_train, y_test = load_sample_data()
+    
+    # Build and compile model
+    model = classifier.build_model()
+    model.compile(optimizer='adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
     
     # Train the model
-    history = classifier.train(texts, labels, epochs=epochs)
-    
-    # Save trained model
-    classifier.save_model('nlp_classifier_model.h5')
-    classifier.save_tokenizer('nlp_tokenizer.json')
-    
-    return history
-
-# Real-time training monitoring
-print(f"Training completed with {epochs} epochs")
-print(f"Final accuracy: {history.history['accuracy'][-1]:.3f}")</code></pre>
+    history = model.fit(X_train, y_train,
+                       epochs=50,
+                       batch_size=32,
+                       validation_data=(X_test, y_test))</code></pre>
+                            </div>
+                            <div class="code-status">Ready</div>
                         </div>
                     </div>
                 </div>
