@@ -1,47 +1,25 @@
-// Agent Conversation System Frontend
+// Agent Conversation System Frontend - Minimal Prompt Interface
 class AgentConversationUI {
     constructor() {
         this.currentConversation = null;
-        this.exchangeCount = 0;
-        this.maxExchanges = 4;
         this.isProcessing = false;
         
         this.initializeElements();
         this.bindEvents();
+        this.initializeCodeTabs();
+        this.startRealTimeUpdates();
         this.checkSystemStatus();
     }
 
     initializeElements() {
-        // Configuration elements
-        this.employee1Role = document.getElementById('employee1-role');
-        this.employee1Expertise = document.getElementById('employee1-expertise');
-        this.employee2Role = document.getElementById('employee2-role');
-        this.employee2Expertise = document.getElementById('employee2-expertise');
+        // Prompt interface elements
+        this.promptInput = document.getElementById('prompt-input');
+        this.sendButton = document.getElementById('send-prompt');
+        this.conversationArea = document.getElementById('conversation-area');
         
-        // Conversation elements
-        this.conversationTopic = document.getElementById('conversation-topic');
-        this.conversationContext = document.getElementById('conversation-context');
-        this.maxExchangesSelect = document.getElementById('max-exchanges');
-        
-        // Display elements
-        this.conversationDisplay = document.getElementById('conversation-display');
-        this.conversationContent = document.getElementById('conversation-content');
-        this.progressFill = document.getElementById('progress-fill');
-        this.progressText = document.getElementById('progress-text');
-        
-        // Control buttons
-        this.startButton = document.getElementById('start-conversation');
-        this.nextExchangeButton = document.getElementById('next-exchange');
-        this.runFullButton = document.getElementById('run-full-conversation');
-        this.resetButton = document.getElementById('reset-conversation');
-        
-        // Demo buttons
-        this.demoButtons = document.querySelectorAll('.btn-demo');
-        
-        // Status elements
-        this.apiStatus = document.getElementById('api-status');
-        this.agentsStatus = document.getElementById('agents-status');
-        this.conversationStatus = document.getElementById('conversation-status');
+        // Agent role displays (for left panel)
+        this.employee1RoleDisplay = document.getElementById('employee1-role-display');
+        this.employee2RoleDisplay = document.getElementById('employee2-role-display');
         
         // Loading overlay
         this.loadingOverlay = document.getElementById('loading-overlay');
@@ -49,30 +27,88 @@ class AgentConversationUI {
     }
 
     bindEvents() {
-        // Start conversation
-        this.startButton.addEventListener('click', () => this.startConversation());
+        // Send prompt
+        this.sendButton.addEventListener('click', () => this.sendPrompt());
         
-        // Next exchange
-        this.nextExchangeButton.addEventListener('click', () => this.nextExchange());
-        
-        // Run full conversation
-        this.runFullButton.addEventListener('click', () => this.runFullConversation());
-        
-        // Reset conversation
-        this.resetButton.addEventListener('click', () => this.resetConversation());
-        
-        // Demo buttons
-        this.demoButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const scenario = e.target.dataset.scenario;
-                this.loadDemoScenario(scenario);
+        // Enter key to send
+        this.promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendPrompt();
+            }
+        });
+
+        // Auto-resize textarea
+        this.promptInput.addEventListener('input', () => {
+            this.autoResizeTextarea();
+        });
+    }
+
+    initializeCodeTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                // Remove active class from all tabs
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                button.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+                
+                // Highlight syntax
+                Prism.highlightAll();
             });
         });
+    }
+
+    startRealTimeUpdates() {
+        // Simulate real-time code updates
+        setInterval(() => {
+            this.updateCodeStatus();
+        }, 3000);
+
+        // Simulate agent activity
+        setInterval(() => {
+            this.simulateAgentActivity();
+        }, 5000);
+    }
+
+    updateCodeStatus() {
+        const statusElements = document.querySelectorAll('.code-status');
+        const statuses = ['Active', 'Running', 'Processing', 'Connected', 'Ready'];
         
-        // Max exchanges change
-        this.maxExchangesSelect.addEventListener('change', (e) => {
-            this.maxExchanges = parseInt(e.target.value);
-            this.updateProgress();
+        statusElements.forEach(element => {
+            if (Math.random() > 0.7) {
+                const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                element.textContent = newStatus;
+                
+                // Add a brief highlight effect with grey
+                element.style.color = '#333333';
+                element.style.background = '#cccccc';
+                setTimeout(() => {
+                    element.style.color = '';
+                    element.style.background = '';
+                }, 500);
+            }
+        });
+    }
+
+    simulateAgentActivity() {
+        const agents = document.querySelectorAll('.agent-card');
+        agents.forEach(agent => {
+            if (Math.random() > 0.8) {
+                // Simulate agent activity
+                const indicator = agent.querySelector('.agent-status-indicator');
+                indicator.style.animation = 'pulse 0.5s ease-in-out';
+                setTimeout(() => {
+                    indicator.style.animation = 'pulse 2s infinite';
+                }, 500);
+            }
         });
     }
 
@@ -87,237 +123,133 @@ class AgentConversationUI {
             });
             
             if (response.ok) {
-                this.updateStatus('api-status', 'Connected', 'success');
-                this.updateStatus('agents-status', 'Ready', 'success');
+                this.updateStatusIndicators('connected');
             } else {
-                this.updateStatus('api-status', 'Not Connected', 'error');
-                this.updateStatus('agents-status', 'Not Available', 'error');
+                this.updateStatusIndicators('demo');
             }
         } catch (error) {
             console.log('Running in demo mode - no backend connection');
-            this.updateStatus('api-status', 'Demo Mode', 'warning');
-            this.updateStatus('agents-status', 'Demo Mode', 'warning');
+            this.updateStatusIndicators('demo');
         }
     }
 
-    updateStatus(elementId, text, type = '') {
-        const element = document.getElementById(elementId);
-        element.textContent = text;
-        element.className = `status-value ${type}`;
+    updateStatusIndicators(status) {
+        const statusDots = document.querySelectorAll('.status-dot');
+        const statusTexts = document.querySelectorAll('.status-text');
+        
+        if (status === 'connected') {
+            statusDots.forEach(dot => {
+                dot.classList.add('active');
+                dot.style.background = '#666666';
+            });
+            statusTexts.forEach(text => {
+                text.textContent = 'Online';
+                text.style.color = '#666666';
+            });
+        } else {
+            statusDots.forEach(dot => {
+                dot.classList.add('active');
+                dot.style.background = '#999999';
+            });
+            statusTexts.forEach(text => {
+                text.textContent = 'Demo Mode';
+                text.style.color = '#999999';
+            });
+        }
     }
 
-    async startConversation() {
-        if (this.isProcessing) return;
+    async sendPrompt() {
+        const message = this.promptInput.value.trim();
+        if (!message || this.isProcessing) return;
+
+        // Add user message
+        this.addMessage('user', message);
         
-        const topic = this.conversationTopic.value.trim();
-        const context = this.conversationContext.value.trim();
+        // Clear input and reset size
+        this.promptInput.value = '';
+        this.autoResizeTextarea();
         
-        if (!topic) {
-            alert('Please enter a conversation topic');
-            return;
-        }
-        
-        this.showLoading('Starting conversation...');
+        // Show loading
+        this.showLoading('Processing your request...');
         
         try {
-            // In a real implementation, this would call the backend
-            // For now, we'll simulate the conversation start
-            await this.simulateConversationStart(topic, context);
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
-            this.conversationDisplay.style.display = 'block';
-            this.updateStatus('conversation-status', 'Active', 'success');
-            this.exchangeCount = 0;
-            this.updateProgress();
+            // Generate response based on message content
+            const response = this.generateResponse(message);
             
-            // Add initial messages
-            this.addMessage('broker', 'Conversation started', 'Conversation initialized with the specified topic and context.');
+            // Add assistant response
+            this.addMessage('assistant', response);
             
         } catch (error) {
-            console.error('Error starting conversation:', error);
-            alert('Error starting conversation. Please try again.');
+            console.error('Error processing message:', error);
+            this.addMessage('assistant', 'Sorry, I encountered an error processing your request. Please try again.');
         } finally {
             this.hideLoading();
         }
     }
 
-    async simulateConversationStart(topic, context) {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    generateResponse(message) {
+        const lowerMessage = message.toLowerCase();
         
-        // Simulate initial perspectives
-        const employee1Role = this.employee1Role.value;
-        const employee2Role = this.employee2Role.value;
-        
-        this.addMessage('employee1', `${employee1Role} Initial Perspective`, 
-            `As a ${employee1Role}, I believe we should approach this topic systematically. ${topic} requires careful consideration of our current processes and potential improvements.`);
-        
-        this.addMessage('employee2', `${employee2Role} Initial Perspective`, 
-            `From a ${employee2Role} perspective, I see several technical considerations we need to address. ${topic} involves both strategic and implementation challenges.`);
-        
-        this.addMessage('broker', 'Analysis', 
-            'Both perspectives provide valuable insights. Employee1 focuses on systematic approach while Employee2 emphasizes technical considerations. Let\'s explore these viewpoints further.');
-    }
-
-    async nextExchange() {
-        if (this.isProcessing || this.exchangeCount >= this.maxExchanges) return;
-        
-        this.showLoading('Processing next exchange...');
-        
-        try {
-            await this.simulateExchange();
-            this.exchangeCount++;
-            this.updateProgress();
-            
-            if (this.exchangeCount >= this.maxExchanges) {
-                this.concludeConversation();
-            }
-            
-        } catch (error) {
-            console.error('Error processing exchange:', error);
-            alert('Error processing exchange. Please try again.');
-        } finally {
-            this.hideLoading();
+        // Simple response logic based on message content
+        if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+            return 'Hello! I\'m your Agent Conversation System assistant. I can help you with:\n\n• Starting conversations between agents\n• Configuring agent roles and expertise\n• Running demo scenarios\n• Monitoring system status\n\nWhat would you like to do?';
         }
-    }
-
-    async simulateExchange() {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        const employee1Role = this.employee1Role.value;
-        const employee2Role = this.employee2Role.value;
-        
-        // Simulate employee responses
-        this.addMessage('employee1', `${employee1Role} Response`, 
-            `I understand the technical challenges you've raised. From a management perspective, we need to balance these technical requirements with our timeline and resource constraints.`);
-        
-        this.addMessage('employee2', `${employee2Role} Response`, 
-            `Thank you for considering the technical aspects. I believe we can find a middle ground that addresses both the technical requirements and the business constraints.`);
-        
-        // Simulate broker analysis
-        this.addMessage('broker', 'Exchange Analysis', 
-            'Excellent progress! Both parties are showing willingness to collaborate and find common ground. The conversation is moving toward a constructive resolution.');
-    }
-
-    async runFullConversation() {
-        if (this.isProcessing) return;
-        
-        this.showLoading('Running full conversation...');
-        
-        try {
-            // Run all exchanges
-            for (let i = 0; i < this.maxExchanges; i++) {
-                await this.simulateExchange();
-                this.exchangeCount++;
-                this.updateProgress();
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Brief pause between exchanges
-            }
-            
-            this.concludeConversation();
-            
-        } catch (error) {
-            console.error('Error running full conversation:', error);
-            alert('Error running full conversation. Please try again.');
-        } finally {
-            this.hideLoading();
+        if (lowerMessage.includes('start') && lowerMessage.includes('conversation')) {
+            return 'I can help you start a conversation between your agents. Here are some example prompts:\n\n• "Start a conversation about project timeline between a Project Manager and Senior Developer"\n• "Have Employee1 (Marketing Manager) and Employee2 (Data Analyst) discuss Q4 budget allocation"\n• "Run a demo conversation about feature design"\n\nWhat type of conversation would you like to start?';
         }
-    }
-
-    concludeConversation() {
-        this.addMessage('broker', 'Conversation Conclusion', 
-            'The conversation has reached a successful conclusion. Both parties have achieved mutual understanding and identified a path forward. Key decisions and next steps have been established.');
         
-        this.updateStatus('conversation-status', 'Completed', 'success');
-        this.nextExchangeButton.style.display = 'none';
-        this.runFullButton.disabled = true;
-    }
-
-    loadDemoScenario(scenario) {
-        const scenarios = {
-            project: {
-                topic: 'Project Timeline Adjustment for Authentication Module',
-                context: 'Client needs delivery by Friday, team estimates 2 more weeks',
-                employee1Role: 'Project Manager',
-                employee1Expertise: 'Project planning and coordination',
-                employee2Role: 'Senior Developer',
-                employee2Expertise: 'Technical implementation and system architecture'
-            },
-            design: {
-                topic: 'Redesigning User Onboarding Flow',
-                context: '40% drop-off rate, need to improve retention',
-                employee1Role: 'Product Manager',
-                employee1Expertise: 'Product strategy and user experience',
-                employee2Role: 'UX Designer',
-                employee2Expertise: 'User interface design and user research'
-            },
-            marketing: {
-                topic: 'Q4 Marketing Campaign Budget Allocation',
-                context: '$100K budget across different channels',
-                employee1Role: 'Marketing Manager',
-                employee1Expertise: 'Marketing strategy and campaign management',
-                employee2Role: 'Data Analyst',
-                employee2Expertise: 'Data analysis and performance optimization'
-            },
-            hr: {
-                topic: 'Employee Performance Management System Implementation',
-                context: 'Replace paper-based system with digital solution',
-                employee1Role: 'HR Manager',
-                employee1Expertise: 'Human resources and employee relations',
-                employee2Role: 'IT Manager',
-                employee2Expertise: 'Information technology and system implementation'
-            }
-        };
-        
-        const selectedScenario = scenarios[scenario];
-        if (selectedScenario) {
-            this.conversationTopic.value = selectedScenario.topic;
-            this.conversationContext.value = selectedScenario.context;
-            this.employee1Role.value = selectedScenario.employee1Role;
-            this.employee1Expertise.value = selectedScenario.employee1Expertise;
-            this.employee2Role.value = selectedScenario.employee2Role;
-            this.employee2Expertise.value = selectedScenario.employee2Expertise;
-            
-            // Highlight the selected demo button
-            this.demoButtons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        if (lowerMessage.includes('agent') && lowerMessage.includes('role')) {
+            return 'You can configure agent roles by typing something like:\n\n• "Set Employee1 as Project Manager with expertise in project planning"\n• "Change Employee2 to Senior Developer with technical implementation skills"\n• "Configure both agents for a marketing discussion"\n\nWhat roles would you like to set?';
         }
-    }
-
-    resetConversation() {
-        this.conversationContent.innerHTML = '';
-        this.conversationDisplay.style.display = 'none';
-        this.exchangeCount = 0;
-        this.updateProgress();
-        this.updateStatus('conversation-status', 'Idle');
         
-        // Reset buttons
-        this.nextExchangeButton.style.display = 'none';
-        this.runFullButton.disabled = false;
+        if (lowerMessage.includes('demo') || lowerMessage.includes('example')) {
+            return 'Here are some demo scenarios you can try:\n\n• "Run the project timeline demo"\n• "Start the marketing campaign discussion"\n• "Show me the feature design conversation"\n• "Demonstrate the HR system implementation"\n\nWhich demo would you like to see?';
+        }
+        
+        if (lowerMessage.includes('status') || lowerMessage.includes('system')) {
+            return 'System Status:\n\n✅ Agents: All agents are online and ready\n✅ Guardian NLP: Processing system active\n✅ XAI API: Connected and operational\n✅ Database: Connected and responsive\n\nEverything is running smoothly!';
+        }
+        
+        if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+            return 'I can help you with:\n\n🤖 **Agent Management**\n• Configure agent roles and expertise\n• Start conversations between agents\n• Monitor agent activity\n\n🛡️ **Guardian System**\n• View NLP classifier status\n• Check database integration\n• Monitor model training\n\n💬 **Conversations**\n• Run demo scenarios\n• Start custom conversations\n• Track conversation progress\n\nJust ask me what you\'d like to do!';
+        }
+        
+        // Default response
+        return 'I understand you\'re asking about: "' + message + '"\n\nI can help you with agent conversations, system configuration, and running demos. Try asking me to:\n\n• Start a conversation\n• Configure agents\n• Run a demo\n• Check system status\n\nWhat would you like to do?';
     }
 
-    updateProgress() {
-        const progress = (this.exchangeCount / this.maxExchanges) * 100;
-        this.progressFill.style.width = `${progress}%`;
-        this.progressText.textContent = `Exchange ${this.exchangeCount} of ${this.maxExchanges}`;
-    }
-
-    addMessage(sender, title, content, analysis = null) {
+    addMessage(sender, content) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
         
         const time = new Date().toLocaleTimeString();
+        const avatar = sender === 'user' ? 'U' : 'A';
         
         messageDiv.innerHTML = `
-            <div class="message-header">
-                <span class="message-sender">${title}</span>
-                <span class="message-time">${time}</span>
+            <div class="message-avatar">${avatar}</div>
+            <div class="message-content">
+                <div class="message-text">${this.formatMessage(content)}</div>
+                <div class="message-time">${time}</div>
             </div>
-            <div class="message-content">${content}</div>
-            ${analysis ? `<div class="message-analysis">${analysis}</div>` : ''}
         `;
         
-        this.conversationContent.appendChild(messageDiv);
-        this.conversationContent.scrollTop = this.conversationContent.scrollHeight;
+        this.conversationArea.appendChild(messageDiv);
+        this.conversationArea.scrollTop = this.conversationArea.scrollHeight;
+    }
+
+    formatMessage(content) {
+        // Convert line breaks to <br> tags
+        return content.replace(/\n/g, '<br>');
+    }
+
+    autoResizeTextarea() {
+        const textarea = this.promptInput;
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     }
 
     showLoading(text = 'Processing...') {
@@ -335,15 +267,9 @@ class AgentConversationUI {
 // Initialize the UI when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     new AgentConversationUI();
-});
-
-// Add some CSS for active demo button state
-const style = document.createElement('style');
-style.textContent = `
-    .btn-demo.active {
-        background: #000000 !important;
-        color: white !important;
-        border-color: #000000 !important;
+    
+    // Initialize Prism syntax highlighting
+    if (typeof Prism !== 'undefined') {
+        Prism.highlightAll();
     }
-`;
-document.head.appendChild(style); 
+}); 
