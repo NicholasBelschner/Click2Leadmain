@@ -19,3 +19,5 @@ langchain==0.1.17
 openai==1.33.0
 tiktoken==0.6.0
 python-dotenv==1.0.1
+transformers>=4.30.0
+flask>=2.3.0

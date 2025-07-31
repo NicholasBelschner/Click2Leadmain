@@ -215,6 +215,14 @@ Output: [
     {{"role": "Fitness Coordinator", "expertise": "Integration of workouts and nutrition for optimal performance"}}
 ]
 
+User: "Build me agents for myself I would like these agents to be like employees corresponding with one another. I would like an agent for nutrition, making sure all my dietary needs are met, and the way that this agent will do that will be corresponding with the other agents, and then another agent for in charge of my martial arts training another agent for my sprinting training and then another for my strength training, so four total agents"
+Output: [
+    {{"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"}},
+    {{"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"}},
+    {{"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"}},
+    {{"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"}}
+]
+
 Please parse the user specification and return only the JSON array."""
 
         try:
@@ -240,7 +248,7 @@ Please parse the user specification and return only the JSON array."""
         agent_count = 2  # default
         if "3 employees" in user_spec_lower or "3 agents" in user_spec_lower:
             agent_count = 3
-        elif "4 employees" in user_spec_lower or "4 agents" in user_spec_lower:
+        elif "4 employees" in user_spec_lower or "4 agents" in user_spec_lower or "four total" in user_spec_lower:
             agent_count = 4
         elif "5 employees" in user_spec_lower or "5 agents" in user_spec_lower:
             agent_count = 5
@@ -249,10 +257,16 @@ Please parse the user specification and return only the JSON array."""
         agents = []
         
         # Check for fitness/nutrition related roles
-        if "workout" in user_spec_lower or "fitness" in user_spec_lower:
-            agents.append({"role": "Workout Specialist", "expertise": "Fitness training and exercise program design"})
+        if "workout" in user_spec_lower or "fitness" in user_spec_lower or "strength training" in user_spec_lower:
+            agents.append({"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"})
         
-        if "nutrition" in user_spec_lower or "eating" in user_spec_lower or "drinking" in user_spec_lower:
+        if "martial arts" in user_spec_lower or "martial" in user_spec_lower:
+            agents.append({"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"})
+        
+        if "sprinting" in user_spec_lower or "sprint" in user_spec_lower or "sprint training" in user_spec_lower:
+            agents.append({"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"})
+        
+        if "nutrition" in user_spec_lower or "eating" in user_spec_lower or "drinking" in user_spec_lower or "dietary" in user_spec_lower:
             agents.append({"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"})
         
         if "align" in user_spec_lower or "coordinate" in user_spec_lower or "coordination" in user_spec_lower:
@@ -276,6 +290,23 @@ Please parse the user specification and return only the JSON array."""
         
         # If we found specific roles, use them
         if agents:
+            # If user specifically mentioned "four total", make sure we have 4 agents
+            if "four total" in user_spec_lower and len(agents) < 4:
+                # Add missing agents based on what we have
+                existing_roles = [agent['role'] for agent in agents]
+                
+                if "Nutrition Specialist" not in existing_roles:
+                    agents.append({"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"})
+                
+                if "Martial Arts Specialist" not in existing_roles:
+                    agents.append({"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"})
+                
+                if "Sprinting Specialist" not in existing_roles:
+                    agents.append({"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"})
+                
+                if "Strength Training Specialist" not in existing_roles:
+                    agents.append({"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"})
+            
             return agents[:agent_count]  # Limit to requested number
         
         # Otherwise create generic agents
@@ -344,29 +375,9 @@ Please parse the user specification and return only the JSON array."""
         """
         Generate initial broker message
         """
-        agent_list = "\n".join([f"- {agent['role']} (Expertise: {agent['expertise']})" for agent in agents])
-        
-        prompt = f"""You are starting a new multi-agent conversation. Generate a brief, professional opening message.
-
-**Topic**: {topic}
-**Context**: {context}
-**Participants**:
-{agent_list}
-
-Your message should:
-1. Welcome all participants
-2. Briefly state the topic and objectives
-3. Set a collaborative tone
-4. Invite the first round of perspectives
-
-Keep it concise and professional."""
-
-        try:
-            response = self._call_xai_api(prompt, max_tokens=300)
-            return response.strip()
-        except Exception as e:
-            # Fallback initial message
-            return f"Welcome everyone! We're here to discuss {topic}. {context} I'm excited to hear perspectives from our team: {', '.join([agent['role'] for agent in agents])}. Let's begin with your initial thoughts on this topic."
+        # Return a simple, direct message without the welcome
+        agent_names = [agent['role'] for agent in agents]
+        return f"Agents created successfully: {', '.join(agent_names)}. Ready to begin conversation."
     
     def _analyze_exchange(self, agent_responses: List[Dict]) -> str:
         """

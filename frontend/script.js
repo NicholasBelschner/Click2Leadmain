@@ -6,6 +6,8 @@ class AgentConversationUI {
         this.waitingForAgentSpecification = false;
         this.currentTopic = '';
         this.currentContext = '';
+        this.thoughtStream = null;
+        this.thoughtStreamActive = false;
         
         this.initializeElements();
         this.bindEvents();
@@ -13,6 +15,8 @@ class AgentConversationUI {
         this.startRealTimeUpdates();
         this.checkSystemStatus();
         this.updateAgentsDisplay(); // Load existing agents
+        this.startGuardianThoughtProcess(); // Start Guardian thought process
+        this.initializeThoughtStream(); // Initialize real-time thought stream
     }
 
     initializeElements() {
@@ -27,6 +31,13 @@ class AgentConversationUI {
         // Loading overlay
         this.loadingOverlay = document.getElementById('loading-overlay');
         this.loadingText = document.getElementById('loading-text');
+        
+        // Thought stream container
+        this.thoughtStreamContainer = document.getElementById('thought-stream-container');
+        if (!this.thoughtStreamContainer) {
+            // Create thought stream container if it doesn't exist
+            this.createThoughtStreamContainer();
+        }
     }
 
     bindEvents() {
@@ -172,38 +183,71 @@ class AgentConversationUI {
         this.promptInput.value = '';
         this.autoResizeTextarea();
         
-        // Show loading
-        this.showLoading('Processing your request...');
+        // Clear previous thoughts and show real-time processing
+        await this.clearThoughtStream();
+        this.showRealTimeProcessing();
         
         try {
-            if (this.waitingForAgentSpecification) {
-                // User is specifying agents
-                await this.handleAgentSpecification(message);
-            } else {
-                // Check if this is an agent creation request
-                const lowerMessage = message.toLowerCase();
-                if (lowerMessage.includes('create') && lowerMessage.includes('agent') || 
-                    lowerMessage.includes('team') && lowerMessage.includes('agent') ||
-                    lowerMessage.includes('employees') && lowerMessage.includes('working') ||
-                    lowerMessage.includes('3 employees') || lowerMessage.includes('3 agents')) {
+            // Send all prompts to the intelligent conversation processor
+            const response = await fetch('/api/conversation/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    context: {
+                        currentTopic: this.currentTopic,
+                        currentContext: this.currentContext,
+                        waitingForAgentSpecification: this.waitingForAgentSpecification
+                    }
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Handle different response types
+                if (result.type === 'agent_creation') {
+                    this.waitingForAgentSpecification = false;
+                    this.currentConversation = result;
                     
-                    // Extract topic and context from the message
-                    this.currentTopic = message;
-                    this.currentContext = '';
+                    // Update the dynamic agents display
+                    if (result.agents && result.agents.length > 0) {
+                        this.displayDynamicAgents(result.agents);
+                    }
                     
-                    // Send the agent creation request to the backend
-                    await this.handleAgentSpecification(message);
+                    // Add broker message
+                    this.addMessage('assistant', result.response);
+                    
+                    // Show created agents summary
+                    if (result.agents_created > 0) {
+                        const agentList = result.agents.map(agent => `${agent.role} (${agent.expertise})`).join(', ');
+                        this.addMessage('assistant', `✅ Created ${result.agents_created} agents: ${agentList}\n\nYou can now conduct exchanges or start a full conversation.`);
+                    }
+                    
+                } else if (result.type === 'exchange') {
+                    // Handle exchange results
+                    this.addMessage('assistant', result.response);
+                    
+                } else if (result.type === 'learning_stats') {
+                    // Handle learning stats request
+                    await this.showLearningStats();
+                    
                 } else {
-                    // Regular conversation or starting new conversation
-                    const response = this.generateResponse(message);
-                    this.addMessage('assistant', response);
+                    // Handle all other response types (help, status, general, etc.)
+                    this.addMessage('assistant', result.response);
                 }
+                
+            } else {
+                this.addMessage('assistant', `Error: ${result.response || 'Failed to process your request'}`);
             }
+            
         } catch (error) {
             console.error('Error processing message:', error);
             this.addMessage('assistant', 'Sorry, I encountered an error processing your request. Please try again.');
         } finally {
-            this.hideLoading();
+            this.hideRealTimeProcessing();
         }
     }
 
@@ -256,42 +300,160 @@ class AgentConversationUI {
             return;
         }
 
-        const agentsHTML = agents.map((agent, index) => {
-            const icon = this.getAgentIcon(agent.role);
-            const shortPersonality = agent.personality.length > 100 
-                ? agent.personality.substring(0, 100) + '...' 
-                : agent.personality;
-            
-            return `
-                <div class="dynamic-agent-card">
-                    <div class="dynamic-agent-header">
-                        <div class="dynamic-agent-info">
-                            <div class="dynamic-agent-icon">${icon}</div>
-                            <div class="dynamic-agent-details">
-                                <h4>${agent.role}</h4>
-                                <p>ID: ${agent.id}</p>
+        const agentsHTML = `
+            <div class="zoom-agent-grid">
+                ${agents.map((agent, index) => {
+                    const icon = this.getAgentIcon(agent.role);
+                    const shortPersonality = agent.personality.length > 100 
+                        ? agent.personality.substring(0, 100) + '...' 
+                        : agent.personality;
+                    
+                    return `
+                        <div class="zoom-agent-tile" data-agent-id="${agent.id}">
+                            <div class="zoom-agent-video-area">
+                                <div class="zoom-agent-avatar">${icon}</div>
+                                <div class="zoom-agent-status"></div>
+                            </div>
+                            <div class="zoom-agent-info">
+                                <div class="zoom-agent-name">${agent.role}</div>
+                                <div class="zoom-agent-role">${agent.expertise}</div>
+                            </div>
+                            <div class="zoom-agent-thoughts" id="agent-thoughts-${agent.id}">
+                                <div class="agent-thought-entry">
+                                    <span class="agent-thought-timestamp">${new Date().toLocaleTimeString()}</span>
+                                    <span class="agent-thought-text">Initializing agent systems...</span>
+                                </div>
+                                <div class="agent-thought-entry">
+                                    <span class="agent-thought-timestamp">${new Date().toLocaleTimeString()}</span>
+                                    <span class="agent-thought-text">Loading expertise: ${agent.expertise}</span>
+                                </div>
+                                <div class="agent-thought-entry">
+                                    <span class="agent-thought-timestamp">${new Date().toLocaleTimeString()}</span>
+                                    <span class="agent-thought-text">Ready for conversation</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="dynamic-agent-status">
-                            <div class="dynamic-agent-status-dot"></div>
-                            <span class="dynamic-agent-status-text">Active</span>
-                        </div>
-                    </div>
-                    <div class="dynamic-agent-body">
-                        <div class="dynamic-agent-expertise">
-                            <h5>Expertise</h5>
-                            <p>${agent.expertise}</p>
-                        </div>
-                        <div class="dynamic-agent-personality">
-                            <h5>Personality</h5>
-                            <p>${shortPersonality}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+                    `;
+                }).join('')}
+            </div>
+        `;
 
         this.dynamicAgentsContainer.innerHTML = agentsHTML;
+        
+        // Start real-time thought processes for each agent
+        agents.forEach(agent => {
+            this.startAgentThoughtProcess(agent);
+        });
+    }
+
+    startAgentThoughtProcess(agent) {
+        const thoughtsContainer = document.getElementById(`agent-thoughts-${agent.id}`);
+        if (!thoughtsContainer) return;
+
+        const thoughtProcesses = [
+            `Analyzing current conversation context...`,
+            `Processing user request for ${agent.role.toLowerCase()} perspective...`,
+            `Generating response based on expertise in ${agent.expertise.toLowerCase()}...`,
+            `Considering best approach for user's needs...`,
+            `Formulating professional recommendation...`,
+            `Preparing to contribute to team discussion...`,
+            `Evaluating potential solutions and strategies...`,
+            `Ready to provide ${agent.role.toLowerCase()} insights...`
+        ];
+
+        let thoughtIndex = 0;
+        
+        const addThought = () => {
+            if (thoughtIndex < thoughtProcesses.length) {
+                const thoughtEntry = document.createElement('div');
+                thoughtEntry.className = 'agent-thought-entry';
+                thoughtEntry.innerHTML = `
+                    <span class="agent-thought-timestamp">${new Date().toLocaleTimeString()}</span>
+                    <span class="agent-thought-text">${thoughtProcesses[thoughtIndex]}</span>
+                `;
+                
+                thoughtsContainer.appendChild(thoughtEntry);
+                thoughtsContainer.scrollTop = thoughtsContainer.scrollHeight;
+                
+                thoughtIndex++;
+                
+                // Continue the thought process
+                setTimeout(addThought, Math.random() * 3000 + 2000); // 2-5 seconds
+            }
+        };
+
+        // Start the thought process after a short delay
+        setTimeout(addThought, 1000);
+    }
+
+    startGuardianThoughtProcess() {
+        const guardianStream = document.getElementById('guardian-thought-stream');
+        if (!guardianStream) return;
+
+        const guardianThoughts = [
+            'Monitoring system performance and health...',
+            'Analyzing incoming text data for importance classification...',
+            'Processing neural network predictions with confidence scores...',
+            'Updating database with new classification results...',
+            'Optimizing model performance based on recent data...',
+            'Maintaining system security and data integrity...',
+            'Preparing for next text analysis request...',
+            'Guardian NLP system operating at optimal efficiency...'
+        ];
+
+        let thoughtIndex = 0;
+        
+        const addGuardianThought = () => {
+            if (thoughtIndex < guardianThoughts.length) {
+                const thoughtEntry = document.createElement('div');
+                thoughtEntry.className = 'thought-entry';
+                thoughtEntry.innerHTML = `
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                    <span class="thought-text">${guardianThoughts[thoughtIndex]}</span>
+                `;
+                
+                guardianStream.appendChild(thoughtEntry);
+                guardianStream.scrollTop = guardianStream.scrollHeight;
+                
+                thoughtIndex++;
+                
+                // Continue the thought process
+                setTimeout(addGuardianThought, Math.random() * 4000 + 3000); // 3-7 seconds
+            }
+        };
+
+        // Start the Guardian thought process
+        setTimeout(addGuardianThought, 2000);
+    }
+
+    addAgentThought(agentId, thought) {
+        const thoughtsContainer = document.getElementById(`agent-thoughts-${agentId}`);
+        if (!thoughtsContainer) return;
+
+        const thoughtEntry = document.createElement('div');
+        thoughtEntry.className = 'agent-thought-entry';
+        thoughtEntry.innerHTML = `
+            <span class="agent-thought-timestamp">${new Date().toLocaleTimeString()}</span>
+            <span class="agent-thought-text">${thought}</span>
+        `;
+        
+        thoughtsContainer.appendChild(thoughtEntry);
+        thoughtsContainer.scrollTop = thoughtsContainer.scrollHeight;
+    }
+
+    addGuardianThought(thought) {
+        const guardianStream = document.getElementById('guardian-thought-stream');
+        if (!guardianStream) return;
+
+        const thoughtEntry = document.createElement('div');
+        thoughtEntry.className = 'thought-entry';
+        thoughtEntry.innerHTML = `
+            <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            <span class="thought-text">${thought}</span>
+        `;
+        
+        guardianStream.appendChild(thoughtEntry);
+        guardianStream.scrollTop = guardianStream.scrollHeight;
     }
 
     getAgentIcon(role) {
@@ -330,73 +492,7 @@ class AgentConversationUI {
         }
     }
 
-    generateResponse(message) {
-        const lowerMessage = message.toLowerCase();
-        
-        // Check for conversation start requests
-        if (lowerMessage.includes('start') && lowerMessage.includes('conversation')) {
-            this.waitingForAgentSpecification = true;
-            return 'I can help you start a conversation! Please tell me:\n\n1. What topic you want to discuss\n2. How many agents you want and their roles\n\nFor example:\n• "I want to discuss project timeline with a Project Manager and Developer"\n• "Create 3 agents: Product Manager, Designer, and Developer for a feature discussion"\n• "Just create 4 agents for a marketing strategy meeting"\n\nWhat would you like to discuss?';
-        }
-        
-        // Check for agent creation requests - this is the key fix!
-        if (lowerMessage.includes('create') && lowerMessage.includes('agent') || 
-            lowerMessage.includes('team') && lowerMessage.includes('agent') ||
-            lowerMessage.includes('employees') && lowerMessage.includes('working') ||
-            lowerMessage.includes('3 employees') || lowerMessage.includes('3 agents')) {
-            
-            // This will be handled in sendPrompt method
-            return 'Processing your agent creation request...';
-        }
-        
-        // Check for topic specification
-        if (this.waitingForAgentSpecification && (lowerMessage.includes('discuss') || lowerMessage.includes('about'))) {
-            // Extract topic and context
-            this.currentTopic = message;
-            this.currentContext = '';
-            
-            this.waitingForAgentSpecification = true;
-            return `Great! I understand you want to discuss: "${message}"\n\nNow, please specify how many agents you want and their roles. For example:\n• "Create 3 agents: Product Manager, Developer, and Designer"\n• "I want 2 agents: one for strategy and one for technical"\n• "Just create 4 agents for this discussion"\n\nWhat agents would you like for this conversation?`;
-        }
-        
-        // Check for agent specification
-        if (this.waitingForAgentSpecification && (lowerMessage.includes('create') || lowerMessage.includes('agent'))) {
-            return `Perfect! I'll create those agents for you. Please wait while I set up the conversation...`;
-        }
-        
-        // Check for exchange requests
-        if (lowerMessage.includes('exchange') || lowerMessage.includes('next')) {
-            if (this.currentConversation) {
-                this.conductExchange();
-                return 'Conducting the next exchange...';
-            } else {
-                return 'No active conversation. Please start a conversation first.';
-            }
-        }
-        
-        // Check for full conversation requests
-        if (lowerMessage.includes('full') && lowerMessage.includes('conversation')) {
-            if (this.currentConversation) {
-                this.runFullConversation();
-                return 'Running full conversation...';
-            } else {
-                return 'No active conversation. Please start a conversation first.';
-            }
-        }
-        
-        // Check for status requests
-        if (lowerMessage.includes('status') || lowerMessage.includes('system')) {
-            return 'System Status:\n\n✅ Dynamic Agent System: Available\n✅ Agent Creation: Working\n✅ Conversation Management: Active\n✅ XAI Integration: Ready\n\nEverything is running smoothly!';
-        }
-        
-        // Check for help requests
-        if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
-            return 'I can help you with:\n\n🤖 **Dynamic Agent Creation**\n• Create any number of agents you need\n• Specify custom roles and expertise\n• Get AI-powered suggestions\n\n💬 **Conversation Management**\n• Start multi-agent conversations\n• Conduct exchanges between agents\n• Run full conversations automatically\n\n🎯 **Examples**\n• "Start a conversation about project timeline"\n• "Create 3 agents: Manager, Developer, Designer"\n• "Run a full conversation"\n\nJust tell me what you\'d like to do!';
-        }
-        
-        // Default response
-        return 'I understand you\'re asking about: "' + message + '"\n\nI can help you create dynamic agents and manage conversations. Try asking me to:\n\n• Start a conversation\n• Create agents\n• Run exchanges\n• Check system status\n\nWhat would you like to do?';
-    }
+    // Removed generateResponse method - now using intelligent backend processing
 
     async conductExchange() {
         try {
@@ -495,6 +591,178 @@ class AgentConversationUI {
     hideLoading() {
         this.isProcessing = false;
         this.loadingOverlay.style.display = 'none';
+    }
+
+    showRealTimeProcessing() {
+        this.isProcessing = true;
+        
+        // Show the thought stream container prominently
+        if (this.thoughtStreamContainer) {
+            this.thoughtStreamContainer.style.display = 'block';
+            this.thoughtStreamContainer.style.border = '2px solid #007bff';
+            this.thoughtStreamContainer.style.background = '#f8f9fa';
+        }
+        
+        // Add initial processing thought
+        this.addThoughtToStream({
+            timestamp: new Date().toISOString(),
+            type: 'system',
+            message: 'Starting to process your request...'
+        });
+    }
+
+    hideRealTimeProcessing() {
+        this.isProcessing = false;
+        
+        // Remove highlighting from thought stream container
+        if (this.thoughtStreamContainer) {
+            this.thoughtStreamContainer.style.border = '';
+            this.thoughtStreamContainer.style.background = '';
+        }
+    }
+
+    createThoughtStreamContainer() {
+        // Create thought stream container
+        const container = document.createElement('div');
+        container.id = 'thought-stream-container';
+        container.className = 'thought-stream-container';
+        container.innerHTML = `
+            <div class="thought-stream-header">
+                <h3>🤔 Real-Time Thought Process</h3>
+                <button id="clear-thoughts" class="clear-thoughts-btn">Clear</button>
+            </div>
+            <div id="thought-stream-content" class="thought-stream-content">
+                <div class="thought-entry">
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                    <span class="thought-text">Thought stream initialized. Waiting for activity...</span>
+                </div>
+            </div>
+        `;
+        
+        // Insert after conversation area
+        const conversationArea = document.getElementById('conversation-area');
+        if (conversationArea && conversationArea.parentNode) {
+            conversationArea.parentNode.insertBefore(container, conversationArea.nextSibling);
+        }
+        
+        this.thoughtStreamContainer = container;
+        
+        // Bind clear button
+        const clearBtn = container.querySelector('#clear-thoughts');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearThoughtStream());
+        }
+    }
+
+    initializeThoughtStream() {
+        if (this.thoughtStreamActive) return;
+        
+        try {
+            this.thoughtStream = new EventSource('/api/thoughts/stream');
+            this.thoughtStreamActive = true;
+            
+            this.thoughtStream.onmessage = (event) => {
+                try {
+                    const thought = JSON.parse(event.data);
+                    this.addThoughtToStream(thought);
+                } catch (error) {
+                    console.error('Error parsing thought:', error);
+                }
+            };
+            
+            this.thoughtStream.onerror = (error) => {
+                console.error('Thought stream error:', error);
+                this.thoughtStreamActive = false;
+                // Try to reconnect after 5 seconds
+                setTimeout(() => this.initializeThoughtStream(), 5000);
+            };
+            
+        } catch (error) {
+            console.error('Error initializing thought stream:', error);
+        }
+    }
+
+    addThoughtToStream(thought) {
+        const content = document.getElementById('thought-stream-content');
+        if (!content) return;
+        
+        const thoughtEntry = document.createElement('div');
+        thoughtEntry.className = 'thought-entry';
+        
+        const timestamp = new Date(thought.timestamp).toLocaleTimeString();
+        const thoughtType = thought.type || 'system';
+        const agentId = thought.agent_id || '';
+        
+        let thoughtText = thought.message;
+        if (agentId) {
+            thoughtText = `[Agent ${agentId}] ${thoughtText}`;
+        }
+        
+        thoughtEntry.innerHTML = `
+            <span class="timestamp">${timestamp}</span>
+            <span class="thought-type">${thoughtType}</span>
+            <span class="thought-text">${thoughtText}</span>
+        `;
+        
+        content.appendChild(thoughtEntry);
+        content.scrollTop = content.scrollHeight;
+        
+        // Add highlight effect
+        thoughtEntry.style.background = '#f0f0f0';
+        setTimeout(() => {
+            thoughtEntry.style.background = '';
+        }, 1000);
+    }
+
+    async clearThoughtStream() {
+        try {
+            await fetch('/api/thoughts/clear', { method: 'POST' });
+            const content = document.getElementById('thought-stream-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="thought-entry">
+                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                        <span class="thought-text">Thought stream cleared. Waiting for new activity...</span>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error clearing thought stream:', error);
+        }
+    }
+
+    async showLearningStats() {
+        try {
+            const response = await fetch('/api/learning/stats');
+            const stats = await response.json();
+            
+            if (stats.error) {
+                this.addMessage('assistant', `Learning system not available: ${stats.error}`);
+                return;
+            }
+            
+            const statsMessage = `🧠 **Neural Learning System Stats**
+
+**📊 Interaction Data:**
+• Total interactions: ${stats.total_interactions}
+• Successful patterns: ${stats.successful_patterns}
+• Average success rate: ${(stats.average_success_rate * 100).toFixed(1)}%
+
+**🤖 Preferred Agents:**
+${Object.entries(stats.preferred_agents).map(([agent, count]) => `• ${agent}: ${count} times`).join('\n') || 'None yet'}
+
+**🔧 System Status:**
+• Neural networks: ${stats.neural_networks_available ? '✅ Available' : '❌ Not available'}
+• Training status: ${stats.is_training ? '🔄 Training' : '✅ Ready'}
+
+The system is learning from your interactions to provide better responses!`;
+            
+            this.addMessage('assistant', statsMessage);
+            
+        } catch (error) {
+            console.error('Error fetching learning stats:', error);
+            this.addMessage('assistant', 'Error fetching learning statistics.');
+        }
     }
 }
 
