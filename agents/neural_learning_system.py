@@ -26,6 +26,10 @@ try:
 except ImportError:
     TORCH_AVAILABLE = False
     print("Warning: PyTorch not available. Neural learning will be disabled.")
+    # Create placeholder nn module for when PyTorch is not available
+    class nn:
+        class Module:
+            pass
 
 class UserInteractionData:
     """Data structure for storing user interaction data"""
