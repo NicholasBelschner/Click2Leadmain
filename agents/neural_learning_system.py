@@ -30,6 +30,31 @@ except ImportError:
     class nn:
         class Module:
             pass
+        class Embedding:
+            def __init__(self, *args, **kwargs):
+                pass
+        class LSTM:
+            def __init__(self, *args, **kwargs):
+                pass
+        class MultiheadAttention:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Dropout:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Linear:
+            def __init__(self, *args, **kwargs):
+                pass
+        class ReLU:
+            def __init__(self, *args, **kwargs):
+                pass
+
+# Create placeholder torch module
+if not TORCH_AVAILABLE:
+    class torch:
+        @staticmethod
+        def mean(tensor, dim=None):
+            return 0.0
 
 class UserInteractionData:
     """Data structure for storing user interaction data"""
