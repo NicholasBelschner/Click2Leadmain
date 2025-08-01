@@ -17,6 +17,7 @@ class AgentConversationUI {
         this.updateAgentsDisplay(); // Load existing agents
         this.startGuardianThoughtProcess(); // Start Guardian thought process
         this.initializeThoughtStream(); // Initialize real-time thought stream
+        this.initializeTabSystem(); // Initialize tab system
     }
 
     initializeElements() {
@@ -486,6 +487,11 @@ class AgentConversationUI {
             if (response.ok) {
                 const data = await response.json();
                 this.displayDynamicAgents(data.agents);
+                
+                // Update tab system if available
+                if (tabManager) {
+                    tabManager.updateAgentsTab(data.agents);
+                }
             }
         } catch (error) {
             console.error('Error updating agents display:', error);
@@ -763,6 +769,15 @@ The system is learning from your interactions to provide better responses!`;
             console.error('Error fetching learning stats:', error);
             this.addMessage('assistant', 'Error fetching learning statistics.');
         }
+    }
+
+    initializeTabSystem() {
+        // Initialize the tab manager
+        tabManager = new TabManager();
+        tabManager.initialize();
+        
+        // Update agents tab when agents are loaded
+        this.updateAgentsDisplay();
     }
 }
 
