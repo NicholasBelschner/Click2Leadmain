@@ -1,4 +1,18 @@
 // Agent Conversation System Frontend - Dynamic Agent Interface
+
+// Configuration - Update this for production deployment
+const CONFIG = {
+    // API Base URL - Change this to your Render URL when deployed
+    API_BASE_URL: window.location.hostname === 'localhost' 
+        ? 'http://localhost:5001' 
+        : 'https://your-render-app-name.onrender.com', // Update this with your Render URL
+    
+    // Feature flags
+    ENABLE_NEURAL_LEARNING: true,
+    ENABLE_REAL_TIME_THOUGHTS: true,
+    ENABLE_TAB_SYSTEM: true
+};
+
 class AgentConversationUI {
     constructor() {
         this.currentConversation = null;
