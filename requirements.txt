@@ -22,5 +22,3 @@ python-dotenv==1.0.1
 transformers>=4.30.0
 flask>=2.3.0
 gunicorn>=21.0.0
-# Pin grpcio version if it gets pulled in as dependency
-grpcio==1.62.1
