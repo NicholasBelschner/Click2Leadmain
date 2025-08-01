@@ -7,7 +7,7 @@ seaborn>=0.12.0
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
 pydantic==2.9.2
-pymilvus==2.4.5
+# pymilvus==2.4.5  # Removed for deployment compatibility (grpcio issues)
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.35
 influxdb-client==1.43.0
@@ -17,7 +17,8 @@ protobuf==4.25.3
 requests==2.32.3
 langchain==0.1.17
 openai==1.33.0
-tiktoken==0.6.0
+# tiktoken==0.6.0  # Removed for deployment compatibility (Rust compilation issues)
 python-dotenv==1.0.1
 transformers>=4.30.0
 flask>=2.3.0
+gunicorn>=21.0.0
