@@ -21,10 +21,10 @@ seaborn>=0.12.0
 # Production
 gunicorn>=21.0.0
 
-# AI/ML dependencies (optional - lightweight versions)
-# torch>=2.0.0  # Uncomment if you want full neural learning (may increase build time)
-# transformers>=4.30.0  # Uncomment if you want full neural learning
+# AI/ML dependencies (full neural learning enabled)
+torch==2.1.0+cpu
+transformers==4.35.0
+tokenizers==0.15.0
 
-# Note: PyTorch is commented out to keep deployment fast and lightweight
-# The system works perfectly with fallback implementations
-# Uncomment the above lines if you want full neural learning capabilities 
+# Note: Using CPU-only PyTorch for Render deployment compatibility
+# This enables full neural learning with intent classification and response optimization 

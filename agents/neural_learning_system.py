@@ -23,6 +23,10 @@ try:
     from torch.utils.data import Dataset, DataLoader
     from transformers import AutoTokenizer, AutoModel
     TORCH_AVAILABLE = True
+    print("🧠 PyTorch available! Full neural learning enabled.")
+    print("   - Intent classification: Active")
+    print("   - Response optimization: Active")
+    print("   - Neural networks: Ready for training")
 except ImportError:
     TORCH_AVAILABLE = False
     print("ℹ️  PyTorch not available. Using lightweight fallback mode for neural learning.")

@@ -13,9 +13,10 @@ scikit-learn>=1.3.0
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.35
 
-# AI/ML (optional - will use fallbacks if not available)
-# torch==2.7.1  # Commented out for deployment compatibility
-# transformers>=4.30.0  # Commented out for deployment compatibility
+# AI/ML (full neural learning enabled)
+torch==2.1.0+cpu
+transformers==4.35.0
+tokenizers==0.15.0
 
 # Visualization
 matplotlib>=3.7.0
