@@ -82,6 +82,41 @@ Click2Lead/
 - **[Frontend Interface](frontend/README.md)** - Web interface and user experience
 - **[Guardian NLP](gaurdian/README.md)** - Natural language processing system
 
+## 🚀 **Deployment**
+
+### **Render Deployment**
+
+1. **Environment Variables**: Make sure to set the following environment variables in your Render dashboard:
+   - `XAI_API_TOKEN`: Your XAI API token (required for agent functionality)
+   - `SECRET_KEY`: A secure secret key for Flask
+   - `PORT`: Port number (usually 5000)
+
+2. **Deployment Steps**:
+   - Connect your GitHub repository to Render
+   - Set the build command: `pip install -r requirements.txt`
+   - Set the start command: `python app.py`
+   - Add environment variables in the Environment tab
+   - Deploy!
+
+### **Local Development**
+
+1. **Create a `.env` file** in the root directory:
+   ```bash
+   XAI_API_TOKEN=your_xai_api_token_here
+   SECRET_KEY=your_secret_key_here
+   FLASK_ENV=development
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the application**:
+   ```bash
+   python app.py
+   ```
+
 ## 🎯 **Example Usage**
 
 ### **Creating a Fitness Team**
