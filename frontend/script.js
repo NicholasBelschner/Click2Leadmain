@@ -10,7 +10,7 @@ const CONFIG = {
     // Feature flags
     ENABLE_NEURAL_LEARNING: true,
     ENABLE_REAL_TIME_THOUGHTS: true,
-    ENABLE_TAB_SYSTEM: true
+    ENABLE_TAB_SYSTEM: false
 };
 
 class AgentConversationUI {
