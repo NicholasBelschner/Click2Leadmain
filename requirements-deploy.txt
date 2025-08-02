@@ -21,6 +21,10 @@ seaborn>=0.12.0
 # Production
 gunicorn>=21.0.0
 
-# Note: AI/ML dependencies (torch, transformers) are commented out
-# to avoid build issues on Python 3.13.4
-# The system will use fallback implementations when these are not available 
+# AI/ML dependencies (optional - lightweight versions)
+# torch>=2.0.0  # Uncomment if you want full neural learning (may increase build time)
+# transformers>=4.30.0  # Uncomment if you want full neural learning
+
+# Note: PyTorch is commented out to keep deployment fast and lightweight
+# The system works perfectly with fallback implementations
+# Uncomment the above lines if you want full neural learning capabilities 

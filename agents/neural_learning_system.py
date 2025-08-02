@@ -25,7 +25,10 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    print("Warning: PyTorch not available. Neural learning will be disabled.")
+    print("ℹ️  PyTorch not available. Using lightweight fallback mode for neural learning.")
+    print("   - Full neural learning disabled to keep deployment fast")
+    print("   - System works perfectly with rule-based fallbacks")
+    print("   - To enable full neural learning, add 'torch' to requirements.txt")
     # Create placeholder nn module for when PyTorch is not available
     class nn:
         class Module:
