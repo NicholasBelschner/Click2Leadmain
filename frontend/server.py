@@ -94,7 +94,10 @@ def stream_thoughts():
     """Stream real-time thoughts as Server-Sent Events"""
     def generate():
         last_index = 0
-        while True:
+        timeout_counter = 0
+        max_timeout = 60  # 60 seconds timeout
+        
+        while timeout_counter < max_timeout:
             with thought_stream_lock:
                 current_thoughts = thought_stream[last_index:]
                 last_index = len(thought_stream)
@@ -102,7 +105,15 @@ def stream_thoughts():
             for thought in current_thoughts:
                 yield f"data: {json.dumps(thought)}\n\n"
             
+            # Send a keep-alive ping every 10 seconds
+            if timeout_counter % 20 == 0:  # Every 10 seconds (20 * 0.5s)
+                yield f"data: {json.dumps({'type': 'ping', 'timestamp': time.time()})}\n\n"
+            
             time.sleep(0.5)  # Check every 500ms
+            timeout_counter += 1
+        
+        # Send final message
+        yield f"data: {json.dumps({'type': 'timeout', 'message': 'Stream ended'})}\n\n"
     
     return Response(generate(), mimetype='text/event-stream')
 
@@ -115,23 +126,40 @@ def clear_thought_stream():
 @app.route('/api/status')
 def api_status():
     """Check if the dynamic agent system is available"""
-    if initialize_orchestrator():
-        return jsonify({
-            'status': 'available',
-            'message': 'Dynamic Agent System is ready',
-            'features': [
-                'Dynamic agent creation',
-                'Multi-agent conversations',
-                'AI-powered suggestions',
-                'Flexible conversation management'
-            ]
-        })
-    else:
-        return jsonify({
-            'status': 'unavailable',
-            'message': 'Dynamic Agent System not available',
-            'features': []
-        })
+    try:
+        if initialize_orchestrator():
+            return jsonify({
+                'status': 'available',
+                'message': 'Dynamic Agent System is ready',
+                'features': [
+                    'Dynamic agent creation',
+                    'Multi-agent conversations',
+                    'AI-powered suggestions',
+                    'Flexible conversation management'
+                ]
+            })
+        else:
+            return jsonify({
+                'status': 'unavailable',
+                'message': 'Dynamic Agent System not available - XAI API token may be missing',
+                'features': [],
+                'error': 'Please check environment variables'
+            })
+    except ValueError as e:
+        if 'XAI_API_TOKEN' in str(e):
+            return jsonify({
+                'status': 'error',
+                'message': 'XAI API token not configured',
+                'features': [],
+                'error': 'XAI_API_TOKEN environment variable is required',
+                'solution': 'Add XAI_API_TOKEN to your environment variables'
+            }), 500
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': str(e),
+                'features': []
+            }), 500
 
 @app.route('/api/conversation/start', methods=['POST'])
 def start_conversation():
