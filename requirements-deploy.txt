@@ -23,8 +23,8 @@ gunicorn>=21.0.0
 
 # AI/ML dependencies (full neural learning enabled)
 torch==2.7.1
-transformers==4.35.0
-tokenizers==0.15.0
+transformers>=4.40.0
+tokenizers>=0.16.0
 
 # Note: Using latest PyTorch for Python 3.13.4 compatibility
 # This enables full neural learning with intent classification and response optimization 

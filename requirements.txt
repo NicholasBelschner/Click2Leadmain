@@ -15,8 +15,8 @@ sqlalchemy==2.0.35
 
 # AI/ML (full neural learning enabled)
 torch==2.7.1
-transformers==4.35.0
-tokenizers==0.15.0
+transformers>=4.40.0
+tokenizers>=0.16.0
 
 # Visualization
 matplotlib>=3.7.0
