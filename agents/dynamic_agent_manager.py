@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import requests
 from dotenv import load_dotenv
+from .grok_protocol import GrokProtocol
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ class DynamicAgentManager:
         self.base_url = "https://api.x.ai/v1"
         self.agents = {}  # Store created agents
         self.agent_counter = 0
+        self.grok_protocol = GrokProtocol()  # Initialize Grok protocol
         
     def create_agent(self, role: str, expertise: str, personality_traits: List[str] = None) -> Dict:
         """
@@ -139,51 +141,26 @@ Make it realistic, professional, and suitable for workplace conversations. Keep 
     def generate_agent_response(self, agent_id: str, topic: str, context: str, 
                                other_agents_messages: List[str] = None) -> str:
         """
-        Generate a response from a specific agent
+        Generate a Grok-style response from a specific agent
         """
         agent = self.get_agent(agent_id)
         if not agent:
-            return "Agent not found."
+            return "🤔 Agent not found. Let me help you find the right team member!"
         
-        # Build context for the agent
-        context_parts = [
-            f"You are {agent['role']} with expertise in {agent['expertise']}.",
-            f"Your personality: {agent['personality']}",
-            f"Current topic: {topic}",
-            f"Context: {context}"
-        ]
+        # Use Grok protocol for engaging responses
+        agent_personality = {
+            'role': agent['role'],
+            'expertise': agent['expertise'],
+            'personality': agent['personality']
+        }
         
-        if other_agents_messages:
-            context_parts.append("Recent messages from other team members:")
-            for i, msg in enumerate(other_agents_messages[-3:], 1):  # Last 3 messages
-                context_parts.append(f"{i}. {msg}")
-        
-        context_parts.append("\nPlease provide your professional perspective on this topic, considering your role and expertise.")
-        
-        prompt = "\n".join(context_parts)
-        
-        try:
-            response = self._call_xai_api(prompt)
-            return response.strip()
-        except Exception as e:
-            # Enhanced fallback responses based on agent role
-            role = agent['role'].lower()
-            expertise = agent['expertise'].lower()
-            
-            if 'product' in role or 'manager' in role:
-                return f"As a {agent['role']}, I believe we should approach this {topic} systematically. From my expertise in {expertise}, I see several key considerations we need to address. We should focus on user needs, market opportunities, and ensuring our solution aligns with business objectives. What are your thoughts on the technical feasibility and timeline?"
-            
-            elif 'developer' in role or 'technical' in role or 'engineer' in role:
-                return f"From a technical perspective on {topic}, I can see both opportunities and challenges. My expertise in {expertise} suggests we need to consider implementation complexity, scalability, and maintainability. I'd recommend we start with a proof of concept to validate our approach. How does this align with your strategic vision?"
-            
-            elif 'designer' in role or 'ux' in role or 'creative' in role:
-                return f"As a {agent['role']}, I'm excited about the {topic} opportunity. My expertise in {expertise} tells me we need to prioritize user experience and design consistency. I suggest we conduct user research to understand pain points and create intuitive solutions. How can we balance user needs with technical constraints?"
-            
-            elif 'marketing' in role or 'analyst' in role or 'data' in role:
-                return f"Looking at {topic} through the lens of {expertise}, I see several data points we should consider. We need to understand our target audience, measure performance metrics, and optimize based on results. I recommend we establish clear KPIs and track progress systematically. What are your thoughts on the strategic direction?"
-            
-            else:
-                return f"As a {agent['role']} with expertise in {expertise}, I have some valuable insights on {topic}. I believe we should consider multiple perspectives and ensure our approach is well-rounded. Collaboration will be key to success here. What aspects should we prioritize first?"
+        return self.grok_protocol.generate_agent_response(
+            agent_id=agent_id,
+            topic=topic,
+            context=context,
+            agent_personality=agent_personality,
+            other_agents_messages=other_agents_messages
+        )
     
     def _call_xai_api(self, prompt: str, max_tokens: int = 500) -> str:
         """

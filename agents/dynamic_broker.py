@@ -13,6 +13,7 @@ import requests
 from dotenv import load_dotenv
 
 from .dynamic_agent_manager import DynamicAgentManager, AgentSpecificationHelper
+from .grok_protocol import GrokProtocol
 
 load_dotenv()
 
@@ -23,9 +24,10 @@ class DynamicBrokerAgent:
             raise ValueError("XAI_API_TOKEN not found in environment variables")
         self.base_url = "https://api.x.ai/v1"
         
-        # Initialize dynamic agent manager
+        # Initialize dynamic agent manager and Grok protocol
         self.agent_manager = DynamicAgentManager()
         self.helper = AgentSpecificationHelper(self.xai_api_token)
+        self.grok_protocol = GrokProtocol()
         
         # Conversation state
         self.conversation_history = []
@@ -179,139 +181,208 @@ What would you prefer?"""
     
     def _parse_user_agent_specification(self, user_spec: str, topic: str, context: str) -> List[Dict]:
         """
-        Parse user specification to extract agent roles and expertise
+        Parse user specification to extract agent roles and expertise using XAI
         """
-        prompt = f"""Parse the following user specification to extract agent roles and expertise. Return a JSON array of agent specifications.
+        prompt = f"""You are an expert at creating AI agent teams. Parse the following user specification to extract agent roles and expertise. Return ONLY a valid JSON array of agent specifications.
 
 User specification: "{user_spec}"
 Topic: {topic}
 Context: {context}
 
-Examples:
+**Instructions:**
+1. Analyze the user's request carefully
+2. Identify all the different roles/agents they want
+3. Create appropriate expertise descriptions for each role
+4. Return ONLY the JSON array, no other text
+
+**Examples:**
 
 User: "Create 3 agents: Product Manager, Developer, and Designer"
-Output: [
-    {{"role": "Product Manager", "expertise": "Product strategy and project management"}},
-    {{"role": "Developer", "expertise": "Technical implementation and coding"}},
-    {{"role": "Designer", "expertise": "User interface and user experience design"}}
-]
+Output: [{{"role": "Product Manager", "expertise": "Product strategy and project management"}}, {{"role": "Developer", "expertise": "Technical implementation and coding"}}, {{"role": "Designer", "expertise": "User interface and user experience design"}}]
 
 User: "I want a Marketing Manager and Data Analyst"
-Output: [
-    {{"role": "Marketing Manager", "expertise": "Marketing strategy and campaign management"}},
-    {{"role": "Data Analyst", "expertise": "Data analysis and insights"}}
-]
+Output: [{{"role": "Marketing Manager", "expertise": "Marketing strategy and campaign management"}}, {{"role": "Data Analyst", "expertise": "Data analysis and insights"}}]
 
 User: "Just create 2 agents for strategy and technical"
-Output: [
-    {{"role": "Strategy Specialist", "expertise": "Strategic planning and business analysis"}},
-    {{"role": "Technical Specialist", "expertise": "Technical implementation and feasibility"}}
-]
+Output: [{{"role": "Strategy Specialist", "expertise": "Strategic planning and business analysis"}}, {{"role": "Technical Specialist", "expertise": "Technical implementation and feasibility"}}]
 
-User: "I would like 3 employees working for me. I would like one to be in charge of my workouts and then another to be in charge of my nutrition I am eating/drinking, and then another to make sure that the workouts align with my nutrients and my nutrients aligns with my workouts"
-Output: [
-    {{"role": "Workout Specialist", "expertise": "Fitness training and exercise program design"}},
-    {{"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"}},
-    {{"role": "Fitness Coordinator", "expertise": "Integration of workouts and nutrition for optimal performance"}}
-]
+User: "create two agents for tracking: one for nutrients and another for workouts"
+Output: [{{"role": "Nutrition Specialist", "expertise": "Nutrition tracking and dietary optimization"}}, {{"role": "Workout Specialist", "expertise": "Fitness tracking and exercise program design"}}]
 
-User: "Build me agents for myself I would like these agents to be like employees corresponding with one another. I would like an agent for nutrition, making sure all my dietary needs are met, and the way that this agent will do that will be corresponding with the other agents, and then another agent for in charge of my martial arts training another agent for my sprinting training and then another for my strength training, so four total agents"
-Output: [
-    {{"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"}},
-    {{"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"}},
-    {{"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"}},
-    {{"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"}}
-]
+User: "I need a cook, a fitness trainer, and a friend"
+Output: [{{"role": "Chef", "expertise": "Cooking and meal preparation"}}, {{"role": "Fitness Trainer", "expertise": "Exercise and fitness training"}}, {{"role": "Personal Friend", "expertise": "Emotional support and companionship"}}]
 
-Please parse the user specification and return only the JSON array."""
+User: "Create agents for investigation: detective, analyst, and researcher"
+Output: [{{"role": "Detective", "expertise": "Investigation and evidence gathering"}}, {{"role": "Analyst", "expertise": "Data analysis and pattern recognition"}}, {{"role": "Researcher", "expertise": "Research and information gathering"}}]
+
+User: "I want agents for my business: sales, marketing, and customer service"
+Output: [{{"role": "Sales Specialist", "expertise": "Sales strategy and customer acquisition"}}, {{"role": "Marketing Specialist", "expertise": "Marketing campaigns and brand management"}}, {{"role": "Customer Service Specialist", "expertise": "Customer support and relationship management"}}]
+
+Now parse this user specification and return ONLY the JSON array:"""
 
         try:
-            response = self._call_xai_api(prompt, max_tokens=800)
+            # Use Grok protocol for better parsing
+            response = self.grok_protocol._call_xai_grok_api(prompt, max_tokens=1000)
+            
             # Try to parse JSON response
             try:
+                # Clean the response to extract just the JSON
+                response = response.strip()
+                if response.startswith('```json'):
+                    response = response[7:]
+                if response.endswith('```'):
+                    response = response[:-3]
+                response = response.strip()
+                
                 agent_specs = json.loads(response)
-                return agent_specs
-            except json.JSONDecodeError:
-                # Fallback: try to extract number of agents from user spec
-                return self._extract_agents_from_fallback(user_spec, topic, context)
+                
+                # Validate the response structure
+                if isinstance(agent_specs, list) and all(isinstance(agent, dict) and 'role' in agent and 'expertise' in agent for agent in agent_specs):
+                    return agent_specs
+                else:
+                    raise ValueError("Invalid response structure")
+                    
+            except (json.JSONDecodeError, ValueError) as e:
+                print(f"JSON parsing failed: {e}")
+                print(f"Response was: {response}")
+                # Fallback to intelligent parsing
+                return self._extract_agents_intelligently(user_spec, topic, context)
+                
         except Exception as e:
-            # Fallback: try to extract number of agents from user spec
-            return self._extract_agents_from_fallback(user_spec, topic, context)
+            print(f"XAI API call failed: {e}")
+            # Fallback to intelligent parsing
+            return self._extract_agents_intelligently(user_spec, topic, context)
     
-    def _extract_agents_from_fallback(self, user_spec: str, topic: str, context: str) -> List[Dict]:
+    def _extract_agents_intelligently(self, user_spec: str, topic: str, context: str) -> List[Dict]:
         """
-        Fallback method to extract agent specifications when XAI API fails
+        Intelligent fallback method to extract agent specifications when XAI API fails
         """
         user_spec_lower = user_spec.lower()
         
         # Try to extract number of agents
         agent_count = 2  # default
-        if "3 employees" in user_spec_lower or "3 agents" in user_spec_lower:
+        number_patterns = [
+            ("one", 1), ("two", 2), ("three", 3), ("four", 4), ("five", 5),
+            ("1", 1), ("2", 2), ("3", 3), ("4", 4), ("5", 5)
+        ]
+        
+        for pattern, count in number_patterns:
+            if pattern in user_spec_lower:
+                agent_count = count
+                break
+        
+        # Also check for explicit agent counts
+        if "3 agents" in user_spec_lower or "three agents" in user_spec_lower:
             agent_count = 3
-        elif "4 employees" in user_spec_lower or "4 agents" in user_spec_lower or "four total" in user_spec_lower:
+        elif "4 agents" in user_spec_lower or "four agents" in user_spec_lower:
             agent_count = 4
-        elif "5 employees" in user_spec_lower or "5 agents" in user_spec_lower:
+        elif "5 agents" in user_spec_lower or "five agents" in user_spec_lower:
             agent_count = 5
         
-        # Try to extract specific roles from the text
+        # Count roles mentioned in the text
+        role_indicators = ["a ", "an ", "one ", "1 ", "first ", "second ", "third ", "fourth ", "fifth "]
+        role_count = 0
+        for indicator in role_indicators:
+            role_count += user_spec_lower.count(indicator)
+        
+        # If we found multiple roles, use that count
+        if role_count > 1:
+            agent_count = min(role_count, 5)  # Cap at 5 agents
+        
+        # Extract specific roles mentioned in the text
         agents = []
         
-        # Check for fitness/nutrition related roles
-        if "workout" in user_spec_lower or "fitness" in user_spec_lower or "strength training" in user_spec_lower:
-            agents.append({"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"})
+        # Common role patterns and their expertise
+        role_patterns = [
+            # Fitness & Health
+            (["workout", "workouts", "fitness", "exercise", "training"], "Fitness Trainer", "Exercise and fitness training"),
+            (["nutrition", "nutrients", "eating", "diet", "dietary"], "Nutrition Specialist", "Nutrition planning and dietary optimization"),
+            (["cook", "chef", "cooking", "meal"], "Chef", "Cooking and meal preparation"),
+            (["doctor", "medical", "health"], "Health Specialist", "Health and medical advice"),
+            
+            # Business & Professional
+            (["manager", "management"], "Manager", "Management and leadership"),
+            (["developer", "programmer", "coding"], "Developer", "Software development and coding"),
+            (["designer", "design"], "Designer", "Design and creative work"),
+            (["marketing", "advertising"], "Marketing Specialist", "Marketing and advertising"),
+            (["sales", "selling"], "Sales Specialist", "Sales and customer acquisition"),
+            (["analyst", "analysis"], "Analyst", "Data analysis and insights"),
+            (["researcher", "research"], "Researcher", "Research and information gathering"),
+            
+            # Investigation & Security
+            (["detective", "investigation", "investigator"], "Detective", "Investigation and evidence gathering"),
+            (["security", "guard", "protection"], "Security Specialist", "Security and protection"),
+            (["police", "law enforcement"], "Law Enforcement", "Law enforcement and public safety"),
+            
+            # Personal & Social
+            (["friend", "companion", "buddy"], "Personal Friend", "Emotional support and companionship"),
+            (["coach", "mentor"], "Coach", "Coaching and mentorship"),
+            (["teacher", "educator", "instructor"], "Teacher", "Education and instruction"),
+            (["counselor", "therapist"], "Counselor", "Counseling and therapy"),
+            
+            # Creative & Arts
+            (["artist", "creative"], "Artist", "Creative work and artistic expression"),
+            (["writer", "author"], "Writer", "Writing and content creation"),
+            (["musician", "music"], "Musician", "Music and audio production"),
+            
+            # Technical & Science
+            (["scientist", "science"], "Scientist", "Scientific research and analysis"),
+            (["engineer", "engineering"], "Engineer", "Engineering and technical solutions"),
+            (["data", "statistics"], "Data Specialist", "Data analysis and statistics"),
+            
+            # Service & Support
+            (["customer service", "support"], "Customer Service Specialist", "Customer support and service"),
+            (["assistant", "helper"], "Assistant", "General assistance and support"),
+            (["consultant", "advisor"], "Consultant", "Consulting and advisory services"),
+            
+            # Specialized
+            (["legal", "lawyer", "attorney"], "Legal Specialist", "Legal advice and representation"),
+            (["financial", "accountant", "finance"], "Financial Specialist", "Financial planning and accounting"),
+            (["real estate", "property"], "Real Estate Specialist", "Real estate and property management"),
+            (["travel", "tourism"], "Travel Specialist", "Travel planning and tourism"),
+        ]
         
-        if "martial arts" in user_spec_lower or "martial" in user_spec_lower:
-            agents.append({"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"})
-        
-        if "sprinting" in user_spec_lower or "sprint" in user_spec_lower or "sprint training" in user_spec_lower:
-            agents.append({"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"})
-        
-        if "nutrition" in user_spec_lower or "eating" in user_spec_lower or "drinking" in user_spec_lower or "dietary" in user_spec_lower:
-            agents.append({"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"})
-        
-        if "align" in user_spec_lower or "coordinate" in user_spec_lower or "coordination" in user_spec_lower:
-            agents.append({"role": "Fitness Coordinator", "expertise": "Integration of workouts and nutrition for optimal performance"})
-        
-        # Check for business/technical roles
-        if "product" in user_spec_lower and "manager" in user_spec_lower:
-            agents.append({"role": "Product Manager", "expertise": "Product strategy and project management"})
-        
-        if "developer" in user_spec_lower or "technical" in user_spec_lower:
-            agents.append({"role": "Developer", "expertise": "Technical implementation and coding"})
-        
-        if "designer" in user_spec_lower or "design" in user_spec_lower:
-            agents.append({"role": "Designer", "expertise": "User interface and user experience design"})
-        
-        if "marketing" in user_spec_lower:
-            agents.append({"role": "Marketing Manager", "expertise": "Marketing strategy and campaign management"})
-        
-        if "data" in user_spec_lower and "analyst" in user_spec_lower:
-            agents.append({"role": "Data Analyst", "expertise": "Data analysis and insights"})
+        # Check for each role pattern
+        for keywords, role, expertise in role_patterns:
+            if any(keyword in user_spec_lower for keyword in keywords):
+                # Avoid duplicates
+                if not any(agent['role'] == role for agent in agents):
+                    agents.append({"role": role, "expertise": expertise})
         
         # If we found specific roles, use them
         if agents:
-            # If user specifically mentioned "four total", make sure we have 4 agents
-            if "four total" in user_spec_lower and len(agents) < 4:
-                # Add missing agents based on what we have
-                existing_roles = [agent['role'] for agent in agents]
-                
-                if "Nutrition Specialist" not in existing_roles:
-                    agents.append({"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"})
-                
-                if "Martial Arts Specialist" not in existing_roles:
-                    agents.append({"role": "Martial Arts Specialist", "expertise": "Martial arts training and technique development"})
-                
-                if "Sprinting Specialist" not in existing_roles:
-                    agents.append({"role": "Sprinting Specialist", "expertise": "Sprint training and speed development"})
-                
-                if "Strength Training Specialist" not in existing_roles:
-                    agents.append({"role": "Strength Training Specialist", "expertise": "Strength training and muscle development"})
-            
             return agents[:agent_count]  # Limit to requested number
         
-        # Otherwise create generic agents
-        generic_roles = ["Team Member 1", "Team Member 2", "Team Member 3", "Team Member 4", "Team Member 5"]
-        return [{"role": generic_roles[i], "expertise": "General expertise"} for i in range(agent_count)]
+        # If no specific roles found, try to infer from context
+        if topic:
+            topic_lower = topic.lower()
+            if any(word in topic_lower for word in ["business", "company", "startup"]):
+                return [
+                    {"role": "Business Manager", "expertise": "Business strategy and management"},
+                    {"role": "Marketing Specialist", "expertise": "Marketing and customer acquisition"}
+                ][:agent_count]
+            elif any(word in topic_lower for word in ["fitness", "health", "exercise"]):
+                return [
+                    {"role": "Fitness Trainer", "expertise": "Exercise and fitness training"},
+                    {"role": "Nutrition Specialist", "expertise": "Nutrition planning and dietary optimization"}
+                ][:agent_count]
+            elif any(word in topic_lower for word in ["investigation", "research", "analysis"]):
+                return [
+                    {"role": "Investigator", "expertise": "Investigation and evidence gathering"},
+                    {"role": "Analyst", "expertise": "Data analysis and pattern recognition"}
+                ][:agent_count]
+            elif any(word in topic_lower for word in ["creative", "design", "art"]):
+                return [
+                    {"role": "Creative Director", "expertise": "Creative direction and artistic vision"},
+                    {"role": "Designer", "expertise": "Design and visual communication"}
+                ][:agent_count]
+        
+        # Final fallback: create generic but contextual agents
+        generic_roles = [
+            "Team Member 1", "Team Member 2", "Team Member 3", 
+            "Team Member 4", "Team Member 5"
+        ]
+        return [{"role": generic_roles[i], "expertise": "General expertise and collaboration"} for i in range(agent_count)]
     
     def conduct_exchange(self) -> Dict:
         """
@@ -373,42 +444,32 @@ Please parse the user specification and return only the JSON array."""
     
     def _generate_initial_message(self, topic: str, context: str, agents: List[Dict]) -> str:
         """
-        Generate initial broker message
+        Generate Grok-style initial broker message
         """
-        # Return a simple, direct message without the welcome
-        agent_names = [agent['role'] for agent in agents]
-        return f"Agents created successfully: {', '.join(agent_names)}. Ready to begin conversation."
+        # Use Grok protocol for engaging initial message
+        agent_suggestions = [{"role": agent['role'], "expertise": agent['expertise']} for agent in agents]
+        return self.grok_protocol.generate_broker_response(topic, context, agent_suggestions)
     
     def _analyze_exchange(self, agent_responses: List[Dict]) -> str:
         """
-        Analyze the exchange and provide broker insights
+        Analyze the exchange and provide Grok-style broker insights
         """
+        # Build context for Grok analysis
+        analysis_context = {
+            'exchange_number': self.exchange_count,
+            'agent_responses': agent_responses,
+            'conversation_goals': self.conversation_goals
+        }
+        
+        # Create a prompt for Grok-style analysis
         responses_text = "\n\n".join([
             f"{resp['agent_role']}: {resp['message']}" 
             for resp in agent_responses
         ])
         
-        prompt = f"""As a conversation broker, analyze this exchange between agents and provide insights:
-
-**Exchange #{self.exchange_count}**
-
-{responses_text}
-
-Please provide a brief analysis that includes:
-1. Key points raised by each agent
-2. Areas of agreement or disagreement
-3. Progress toward conversation goals
-4. Suggestions for next steps
-
-Keep it concise and actionable."""
-
-        try:
-            response = self._call_xai_api(prompt, max_tokens=400)
-            return response.strip()
-        except Exception as e:
-            # Fallback analysis
-            agent_names = [resp['agent_role'] for resp in agent_responses]
-            return f"Excellent exchange! {', '.join(agent_names)} have provided valuable perspectives. I see good collaboration and thoughtful insights. Let's continue building on these ideas in our next exchange."
+        prompt = f"🎪 Exchange #{self.exchange_count} Analysis\n\n{responses_text}\n\nAs a conversation broker, what insights do you have about this exchange? What's working well and what should we focus on next?"
+        
+        return self.grok_protocol.generate_grok_response(prompt, analysis_context, None, 'collaboration')
     
     def _calculate_progress(self) -> Dict:
         """
