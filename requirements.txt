@@ -14,7 +14,7 @@ psycopg2-binary==2.9.9
 sqlalchemy==2.0.35
 
 # AI/ML (full neural learning enabled)
-torch==2.1.0+cpu
+torch==2.7.1
 transformers==4.35.0
 tokenizers==0.15.0
 
