@@ -19,6 +19,10 @@ class HealthDataTab {
         container.id = 'health-data-tab-content';
         
         container.innerHTML = `
+            <div class="coming-soon-banner">
+                <h1>COMING SOON</h1>
+            </div>
+            
             <div class="tab-section">
                 <h3>📱 Apple Watch Health Data</h3>
                 <div class="health-connection-status">

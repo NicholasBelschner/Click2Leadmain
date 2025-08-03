@@ -17,6 +17,10 @@ class NeuralArchitectureTab {
         container.id = 'neural-architecture-tab-content';
         
         container.innerHTML = `
+            <div class="coming-soon-banner">
+                <h1>COMING SOON</h1>
+            </div>
+            
             <div class="tab-section">
                 <h3>🧠 Personal Neural Network Architecture</h3>
                 <div class="architecture-overview">

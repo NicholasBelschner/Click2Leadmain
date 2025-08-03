@@ -13,6 +13,10 @@ class VideoAnalysisTab {
         container.id = 'video-analysis-tab-content';
         
         container.innerHTML = `
+            <div class="coming-soon-banner">
+                <h1>COMING SOON</h1>
+            </div>
+            
             <div class="tab-section">
                 <h3>📹 Athletic Movement Analysis</h3>
                 <div class="analysis-overview">
