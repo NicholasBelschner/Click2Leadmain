@@ -12,48 +12,9 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Left Side - Agents and Code Display -->
+        <!-- Left Side - Agents and Guardian Display -->
         <div class="left-panel">
-            <!-- Dynamic Agents Section - Zoom Style -->
-            <div class="section">
-                <h3>🤖 Dynamic Agents</h3>
-                <div id="dynamic-agents-container">
-                    <div class="no-agents-message">
-                        <p>No agents created yet. Start a conversation to create your team!</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guardian System Section - Real-time Operations -->
-            <div class="section">
-                <h3>🛡️ Guardian System</h3>
-                <div class="guardian-operations-container">
-                    <div class="guardian-status">
-                        <div class="status-indicator active"></div>
-                        <span class="status-text">Processing</span>
-                    </div>
-                    <div class="guardian-thoughts">
-                        <div class="thought-stream" id="guardian-thought-stream">
-                            <div class="thought-entry">
-                                <span class="timestamp">16:24:17</span>
-                                <span class="thought-text">Initializing Guardian NLP system...</span>
-                            </div>
-                            <div class="thought-entry">
-                                <span class="timestamp">16:24:18</span>
-                                <span class="thought-text">Loading neural network models...</span>
-                            </div>
-                            <div class="thought-entry">
-                                <span class="timestamp">16:24:19</span>
-                                <span class="thought-text">Establishing database connections...</span>
-                            </div>
-                            <div class="thought-entry">
-                                <span class="timestamp">16:24:20</span>
-                                <span class="thought-text">Guardian system ready for text analysis</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Content will be populated by the tab system -->
         </div>
 
         <!-- Right Side - Minimal Prompt Interface -->
@@ -100,6 +61,9 @@
 
     <!-- Tab Components -->
     <script src="tabs/agents_tab.js"></script>
+    <script src="tabs/health_data_tab.js"></script>
+    <script src="tabs/neural_architecture_tab.js"></script>
+    <script src="tabs/video_analysis_tab.js"></script>
     <script src="tabs/tab_manager.js"></script>
     
     <!-- Main Application -->
