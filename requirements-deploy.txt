@@ -1,4 +1,4 @@
-# Deployment requirements for Python 3.13.4 on Render
+# Deployment requirements for Python 3.11.9 on Render
 # Core dependencies
 flask>=2.3.0
 flask-cors>=4.0.0
@@ -26,5 +26,5 @@ torch==2.7.1
 transformers>=4.40.0
 tokenizers>=0.16.0
 
-# Note: Using latest PyTorch for Python 3.13.4 compatibility
+# Note: Using latest PyTorch for Python 3.11.9 compatibility
 # This enables full neural learning with intent classification and response optimization 
